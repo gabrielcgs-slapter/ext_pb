@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="header">
+    <span id="title">Plataforma Brasil</span>
+    <span id="status-dot" class="dot dot-off" title="Página não detectada"></span>
+  </div>
+
+  <div id="actions">
+    <button data-action="copyData" class="btn">
+      📋 Copiar dados do projeto
+    </button>
+    <button data-action="togglePanels" class="btn">
+      🔽 Expandir / Colapsar seções
+    </button>
+    <button data-action="toggleReadMode" class="btn">
+      👓 Modo leitura (ocultar nav)
+    </button>
+    <button data-action="colorTramites" class="btn">
+      🎨 Colorir histórico de trâmites
+    </button>
+    <button data-action="exportCsv" class="btn">
+      💾 Exportar trâmites CSV
+    </button>
+  </div>
+
+  <div id="feedback"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
