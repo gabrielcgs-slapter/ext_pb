@@ -19,6 +19,21 @@ function matchColor(tipo) {
   return null;
 }
 
+// ── Layout ─────────────────────────────────────────────────────────────
+
+function injectLayoutStyles() {
+  const style = document.createElement('style');
+  style.id = 'pb-toolkit-layout';
+  style.textContent = `
+    #geral         { width: 100% !important; max-width: none !important; }
+    #conteudoImage { width: 100% !important; max-width: none !important; }
+    #conteudoFull  { width: 100% !important; max-width: none !important; }
+  `;
+  document.head.appendChild(style);
+}
+
+injectLayoutStyles();
+
 // ── Ações ──────────────────────────────────────────────────────────────
 
 function actionCopyData() {
