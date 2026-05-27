@@ -30,14 +30,18 @@ function actionCopyData() {
     `Situação: ${data.situacao ?? 'N/A'}`,
     `Instituição: ${data.instituicao ?? 'N/A'}`,
   ].join('\n');
-  navigator.clipboard.writeText(text).catch(() => {
+  try {
     const ta = document.createElement('textarea');
     ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-  });
+  } catch (e) {
+    return { ok: false, error: 'Falha ao copiar: ' + e.message };
+  }
   return { ok: true, text };
 }
 
