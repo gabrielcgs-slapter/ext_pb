@@ -84,30 +84,48 @@ describe('findFastforwardBtn(doc)', () => {
   });
 });
 
-function waitForTableChange(tableEl, timeout = 5000) {
+function waitForTableChange(tableEl, timeout = 5000, debounce = 300) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
+    let debounceTimer;
+    const globalTimer = setTimeout(() => {
+      clearTimeout(debounceTimer);
       observer.disconnect();
       reject(new Error('Timeout aguardando atualização da tabela'));
     }, timeout);
     const observer = new MutationObserver(() => {
-      clearTimeout(timer);
-      observer.disconnect();
-      resolve();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        clearTimeout(globalTimer);
+        observer.disconnect();
+        resolve();
+      }, debounce);
     });
     observer.observe(tableEl, { childList: true, subtree: true });
   });
 }
 
 describe('waitForTableChange', () => {
-  test('resolve quando DOM da tabela muda', async () => {
+  test('resolve após debounce quando DOM da tabela muda', async () => {
     document.body.innerHTML = `
       <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
         <tbody id="tbody"></tbody>
       </table>`;
     const table = document.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
-    const p = waitForTableChange(table, 1000);
+    const p = waitForTableChange(table, 1000, 10);
     document.getElementById('tbody').innerHTML = '<tr><td>novo</td></tr>';
+    await expect(p).resolves.toBeUndefined();
+  });
+
+  test('resolve apenas após mutações pararem (debounce)', async () => {
+    document.body.innerHTML = `
+      <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
+        <tbody id="tbody"></tbody>
+      </table>`;
+    const table = document.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
+    const p = waitForTableChange(table, 1000, 30);
+    // múltiplas mutações rápidas (simula RichFaces: limpa rows, depois renderiza)
+    document.getElementById('tbody').innerHTML = '';
+    document.getElementById('tbody').innerHTML = '<tr><td>página 2</td></tr>';
     await expect(p).resolves.toBeUndefined();
   });
 
@@ -117,7 +135,7 @@ describe('waitForTableChange', () => {
         <tbody></tbody>
       </table>`;
     const table = document.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
-    await expect(waitForTableChange(table, 50)).rejects.toThrow('Timeout aguardando atualização da tabela');
+    await expect(waitForTableChange(table, 50, 10)).rejects.toThrow('Timeout aguardando atualização da tabela');
   });
 });
 

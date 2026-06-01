@@ -130,16 +130,21 @@
     return table.querySelector('td.rich-datascr-button[onclick*="fastforward"]') ?? null;
   }
 
-  function waitForTableChange(tableEl, timeout = 5000) {
+  function waitForTableChange(tableEl, timeout = 5000, debounce = 300) {
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
+      let debounceTimer;
+      const globalTimer = setTimeout(() => {
+        clearTimeout(debounceTimer);
         observer.disconnect();
         reject(new Error('Timeout aguardando atualização da tabela'));
       }, timeout);
       const observer = new MutationObserver(() => {
-        clearTimeout(timer);
-        observer.disconnect();
-        resolve();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          clearTimeout(globalTimer);
+          observer.disconnect();
+          resolve();
+        }, debounce);
       });
       observer.observe(tableEl, { childList: true, subtree: true });
     });
