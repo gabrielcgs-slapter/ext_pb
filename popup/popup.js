@@ -64,6 +64,7 @@ const FEEDBACK_MESSAGES = {
   toggleReadMode: r => r.ok ? (r.hidden ? 'Modo leitura ativado' : 'Navegação restaurada') : `Erro: ${r.error}`,
 aumentarQuadro: r => r.ok ? (r.enlarged ? 'Quadro aumentado' : 'Quadro restaurado') : `Erro: ${r.error}`,
   abrirArvore:    r => r.ok ? `${r.count} nós expandidos` : `Erro: ${r.error}`,
+  submeterNotificacao: r => r.ok ? 'Notificação submetida!' : `Erro: ${r.error}`,
 };
 
 // Map of toggle state extractors — add an entry here to make any action toggleable.
