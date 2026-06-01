@@ -21,16 +21,41 @@ function showFeedback(msg, isError = false) {
   setTimeout(() => { el.textContent = ''; el.className = ''; }, 3000);
 }
 
-async function sendAction(tabId, action) {
+const CONTENT_SCRIPTS = [
+  'lib/extractor.js',
+  'content/attribute-config.js',
+  'content/content.js',
+];
+
+function tryMessage(tabId, action) {
   return new Promise(resolve => {
     chrome.tabs.sendMessage(tabId, { action }, response => {
       if (chrome.runtime.lastError) {
-        resolve({ ok: false, error: chrome.runtime.lastError.message });
+        resolve({ ok: false, _err: chrome.runtime.lastError.message });
       } else {
         resolve(response ?? { ok: false, error: 'Sem resposta do content script' });
       }
     });
   });
+}
+
+async function sendAction(tabId, action) {
+  const first = await tryMessage(tabId, action);
+  if (!first._err) return first;
+
+  if (!first._err.includes('Receiving end does not exist')) {
+    return { ok: false, error: first._err };
+  }
+
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: CONTENT_SCRIPTS });
+  } catch (_) {
+    // script já injetado (IIFE guard ativo) — ok continuar
+  }
+
+  const second = await tryMessage(tabId, action);
+  if (second._err) return { ok: false, error: second._err };
+  return second;
 }
 
 const FEEDBACK_MESSAGES = {
