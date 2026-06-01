@@ -2,7 +2,7 @@
 // Testa o mapa TOGGLE_EXTRACTORS isolado (sem importar popup.js, que depende de chrome APIs)
 
 const TOGGLE_EXTRACTORS = {
-  aumentarQuadro: r => Boolean(r.enlarged),
+  aumentarQuadro: r => Boolean(r?.enlarged),
 };
 
 function getToggleResult(action, response) {
@@ -21,6 +21,14 @@ describe('getToggleResult', () => {
 
     test('retorna false quando enlarged ausente', () => {
       expect(getToggleResult('aumentarQuadro', { ok: true })).toBe(false);
+    });
+
+    test('retorna false quando response é null', () => {
+      expect(getToggleResult('aumentarQuadro', null)).toBe(false);
+    });
+
+    test('retorna false quando response é undefined', () => {
+      expect(getToggleResult('aumentarQuadro', undefined)).toBe(false);
     });
   });
 

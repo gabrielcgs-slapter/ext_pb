@@ -44,7 +44,7 @@ const FEEDBACK_MESSAGES = {
 
 // Map of toggle state extractors — add an entry here to make any action toggleable.
 const TOGGLE_EXTRACTORS = {
-  aumentarQuadro: r => Boolean(r.enlarged),
+  aumentarQuadro: r => Boolean(r?.enlarged),
 };
 
 async function saveToggleState(action, active) {
