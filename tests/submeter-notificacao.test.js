@@ -152,14 +152,17 @@ async function actionSubmeterNotificacao(doc, waitFn, maxPages = 50) {
     if (!ffBtn) {
       return { ok: false, error: 'Botão de notificação não encontrado' };
     }
-    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
     ffBtn.click();
-    await waitFn(table);
+    const loaded = await waitFn(doc);
+    if (!loaded) {
+      return { ok: false, error: 'Timeout aguardando carregamento da página' };
+    }
   }
   return { ok: false, error: 'Botão de notificação não encontrado após percorrer todas as páginas' };
 }
 
-const waitImmediate = () => Promise.resolve();
+// waitFn que simula página carregada imediatamente
+const waitImmediate = () => Promise.resolve(true);
 
 describe('actionSubmeterNotificacao', () => {
   beforeEach(() => {
@@ -232,6 +235,23 @@ describe('actionSubmeterNotificacao', () => {
       </table>`;
     const result = await actionSubmeterNotificacao(document, waitImmediate);
     expect(result).toEqual({ ok: false, error: 'Botão de notificação não encontrado' });
+  });
+
+  test('retorna erro quando página não carrega dentro do timeout', async () => {
+    document.body.innerHTML = `
+      <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
+        <tbody><tr><td>Sem notificação</td></tr></tbody>
+        <tfoot>
+          <td class=" rich-datascr-button" id="ff-btn">»</td>
+        </tfoot>
+      </table>`;
+    document.getElementById('ff-btn').setAttribute(
+      'onclick',
+      "Event.fire(this, 'rich:datascroller:onscroll', {'page': 'fastforward'});"
+    );
+    const waitTimeout = () => Promise.resolve(false);
+    const result = await actionSubmeterNotificacao(document, waitTimeout);
+    expect(result).toEqual({ ok: false, error: 'Timeout aguardando carregamento da página' });
   });
 
   test('retorna erro após percorrer maxPages sem encontrar botão', async () => {

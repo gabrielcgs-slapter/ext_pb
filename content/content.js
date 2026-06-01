@@ -152,6 +152,10 @@
 
   async function actionSubmeterNotificacao() {
     const MAX_PAGES = 50;
+    const POLL_TIMEOUT = 30000;
+    const POLL_INTERVAL = 300;
+    const INITIAL_DELAY = 500;
+
     for (let i = 0; i < MAX_PAGES; i++) {
       const btn = findNotificacaoBtn(document);
       if (btn) {
@@ -162,9 +166,25 @@
       if (!ffBtn) {
         return { ok: false, error: 'Botão de notificação não encontrado' };
       }
-      const table = document.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
       ffBtn.click();
-      await waitForTableChange(table);
+
+      // aguarda próxima página carregar via polling
+      const loaded = await new Promise(resolve => {
+        const deadline = Date.now() + POLL_TIMEOUT;
+        setTimeout(function check() {
+          if (findNotificacaoBtn(document) || findFastforwardBtn(document)) {
+            resolve(true);
+          } else if (Date.now() >= deadline) {
+            resolve(false);
+          } else {
+            setTimeout(check, POLL_INTERVAL);
+          }
+        }, INITIAL_DELAY);
+      });
+
+      if (!loaded) {
+        return { ok: false, error: 'Timeout aguardando carregamento da página' };
+      }
     }
     return { ok: false, error: 'Botão de notificação não encontrado após percorrer todas as páginas' };
   }
