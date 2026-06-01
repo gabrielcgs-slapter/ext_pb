@@ -43,6 +43,13 @@ body {
 .btn:active { background: #c5d8e8; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.btn-active {
+  background: #e3f2fd;
+  border-color: #064060;
+  font-weight: 600;
+}
+.btn-active:hover { background: #bbdefb; }
+
 #feedback {
   min-height: 28px;
   padding: 4px 12px;
