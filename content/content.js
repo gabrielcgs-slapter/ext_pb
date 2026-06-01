@@ -32,7 +32,13 @@ function injectLayoutStyles() {
   document.head.appendChild(style);
 }
 
-injectLayoutStyles();
+function removeLayoutStyles() {
+  document.getElementById('pb-toolkit-layout')?.remove();
+}
+
+// ── Atributos via config ────────────────────────────────────────────────
+
+const CONFIG_URL = chrome.runtime.getURL('config/attributes.json');
 
 // ── Ações ──────────────────────────────────────────────────────────────
 
@@ -41,9 +47,9 @@ function actionCopyData() {
   const text = [
     `CAAE: ${data.caae ?? 'N/A'}`,
     `Título: ${data.titulo ?? 'N/A'}`,
-    `Pesquisador: ${data.pesquisador ?? 'N/A'}`,
-    `Situação: ${data.situacao ?? 'N/A'}`,
-    `Instituição: ${data.instituicao ?? 'N/A'}`,
+    `Pesquisador Responsável: ${data.pesquisador ?? 'N/A'}`,
+    `Área Temática: ${data.areaTematica ?? 'N/A'}`,
+    `Patrocinador Principal: ${data.patrocinador ?? 'N/A'}`,
   ].join('\n');
   try {
     const ta = document.createElement('textarea');
@@ -106,32 +112,56 @@ function actionColorTramites() {
   return { ok: true, count: rows.length };
 }
 
-function actionExportCsv() {
-  const tramites = extractTramites(document);
-  if (!tramites.length) return { ok: false, error: 'Nenhum trâmite encontrado' };
+async function actionAumentarQuadro() {
+  const res = await fetch(CONFIG_URL);
+  const rules = await res.json();
+  const rules_aq = rules.filter(r => r.trigger === 'aumentarQuadro');
 
-  const csv = buildCsv(tramites);
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `tramites_${Date.now()}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  return { ok: true, rows: tramites.length };
+  rules_aq.forEach(({ selector, attributes }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      if (el.dataset.pbEnlarged === 'true') {
+        Object.keys(attributes).forEach(attr => el.removeAttribute(attr));
+        delete el.dataset.pbEnlarged;
+      } else {
+        Object.entries(attributes).forEach(([attr, val]) => el.setAttribute(attr, val));
+        el.dataset.pbEnlarged = 'true';
+      }
+    });
+  });
+
+  const enlarged = rules_aq.some(({ selector }) =>
+    [...document.querySelectorAll(selector)].some(el => el.dataset.pbEnlarged === 'true')
+  );
+
+  if (enlarged) injectLayoutStyles(); else removeLayoutStyles();
+
+  return { ok: true, enlarged };
+}
+
+function actionAbrirArvore() {
+  let count = 0;
+  document.querySelectorAll('.rich-tree-node-handle').forEach(handle => {
+    const collapsed = handle.querySelector('.rich-tree-node-handleicon-collapsed');
+    if (collapsed && collapsed.style.display !== 'none') {
+      handle.click();
+      count++;
+    }
+  });
+  return { ok: true, count };
 }
 
 // ── Listener ──────────────────────────────────────────────────────────
 
 const ACTIONS = {
-  copyData:       actionCopyData,
-  togglePanels:   actionTogglePanels,
-  toggleReadMode: actionToggleReadMode,
-  colorTramites:  actionColorTramites,
-  exportCsv:      actionExportCsv,
+  copyData:        actionCopyData,
+  togglePanels:    actionTogglePanels,
+  toggleReadMode:  actionToggleReadMode,
+  colorTramites:   actionColorTramites,
+  aumentarQuadro:  actionAumentarQuadro,
+  abrirArvore:     actionAbrirArvore,
 };
+
+applyAttributeConfig(CONFIG_URL, document, 'load').catch(() => {});
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   const fn = ACTIONS[msg.action];
@@ -139,9 +169,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: false, error: `Ação desconhecida: ${msg.action}` });
     return;
   }
-  try {
-    sendResponse(fn());
-  } catch (e) {
-    sendResponse({ ok: false, error: e.message });
-  }
+  Promise.resolve()
+    .then(() => fn())
+    .then(r => sendResponse(r))
+    .catch(e => sendResponse({ ok: false, error: e.message }));
+  return true; // mantém canal aberto para resposta async
 });
