@@ -21,13 +21,23 @@
     {
       "matches": [
         "https://plataformabrasil.saude.gov.br/*detalharProjetoAgrupadorApreciacao*",
+        "https://plataformabrasil.saude.gov.br/*gerirPesquisaAgrupador*",
         "http://localhost/*"
       ],
-      "js": ["lib/extractor.js", "content/content.js"],
+      "js": ["lib/extractor.js", "content/attribute-config.js", "content/content.js"],
       "run_at": "document_idle"
     }
   ],
   "background": {
     "service_worker": "background/service_worker.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["config/attributes.json"],
+      "matches": [
+        "https://plataformabrasil.saude.gov.br/*",
+        "http://localhost/*"
+      ]
+    }
+  ]
 }
