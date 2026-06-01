@@ -62,8 +62,7 @@ const FEEDBACK_MESSAGES = {
   copyData:       r => r.ok ? 'Dados copiados!' : `Erro: ${r.error}`,
   togglePanels:   r => r.ok ? `${r.count} seções alternadas` : `Erro: ${r.error}`,
   toggleReadMode: r => r.ok ? (r.hidden ? 'Modo leitura ativado' : 'Navegação restaurada') : `Erro: ${r.error}`,
-  colorTramites:  r => r.ok ? `${r.count} trâmites coloridos` : `Erro: ${r.error}`,
-  aumentarQuadro: r => r.ok ? (r.enlarged ? 'Quadro aumentado' : 'Quadro restaurado') : `Erro: ${r.error}`,
+aumentarQuadro: r => r.ok ? (r.enlarged ? 'Quadro aumentado' : 'Quadro restaurado') : `Erro: ${r.error}`,
   abrirArvore:    r => r.ok ? `${r.count} nós expandidos` : `Erro: ${r.error}`,
 };
 

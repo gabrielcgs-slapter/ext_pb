@@ -5,24 +5,6 @@
   if (window.__pbLoaded) return;
   window.__pbLoaded = true;
 
-  const TRAMITE_COLORS = {
-    'Parecer liberado':                 '#d4edda',
-    'Aprovado':                         '#d4edda',
-    'Reaprovação anual':                '#cce5ff',
-    'Notificação enviada':              '#fff3cd',
-    'Pendência':                        '#ffe0b2',
-    'Não aprovado':                     '#f8d7da',
-    'Parecer do colegiado emitido':     '#e2d9f3',
-    'Parecer do relator emitido':       '#e2d9f3',
-  };
-
-  function matchColor(tipo) {
-    for (const [keyword, color] of Object.entries(TRAMITE_COLORS)) {
-      if (tipo.toLowerCase().includes(keyword.toLowerCase())) return color;
-    }
-    return null;
-  }
-
   // ── Layout ─────────────────────────────────────────────────────────────
 
   function injectLayoutStyles() {
@@ -98,23 +80,6 @@
     return { ok: true, hidden };
   }
 
-  function actionColorTramites() {
-    const tbody = document.querySelector('[id$="tableTramiteApreciacaoProjeto:tb"]');
-    if (!tbody) return { ok: false, error: 'Tabela de trâmites não encontrada' };
-
-    const rows = tbody.querySelectorAll('tr.rich-table-row');
-    rows.forEach(tr => {
-      const tipo = tr.cells[2]?.querySelector('span')?.textContent.trim() ?? '';
-      const color = matchColor(tipo);
-      if (color) {
-        tr.style.backgroundColor = color;
-        tr.onmouseover = null;
-        tr.onmouseout = null;
-      }
-    });
-    return { ok: true, count: rows.length };
-  }
-
   async function actionAumentarQuadro() {
     const res = await fetch(CONFIG_URL);
     const rules = await res.json();
@@ -159,7 +124,6 @@
     copyData:        actionCopyData,
     togglePanels:    actionTogglePanels,
     toggleReadMode:  actionToggleReadMode,
-    colorTramites:   actionColorTramites,
     aumentarQuadro:  actionAumentarQuadro,
     abrirArvore:     actionAbrirArvore,
   };
