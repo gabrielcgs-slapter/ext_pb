@@ -120,3 +120,116 @@ describe('waitForTableChange', () => {
     await expect(waitForTableChange(table, 50)).rejects.toThrow('Timeout aguardando atualização da tabela');
   });
 });
+
+// ── actionSubmeterNotificacao replica ──────────────────────────────────────
+
+async function actionSubmeterNotificacao(doc, waitFn, maxPages = 50) {
+  for (let i = 0; i < maxPages; i++) {
+    const btn = findNotificacaoBtn(doc);
+    if (btn) {
+      btn.click();
+      return { ok: true };
+    }
+    const ffBtn = findFastforwardBtn(doc);
+    if (!ffBtn) {
+      return { ok: false, error: 'Botão de notificação não encontrado' };
+    }
+    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
+    ffBtn.click();
+    await waitFn(table);
+  }
+  return { ok: false, error: 'Botão de notificação não encontrado após percorrer todas as páginas' };
+}
+
+const waitImmediate = () => Promise.resolve();
+
+describe('actionSubmeterNotificacao', () => {
+  beforeEach(() => {
+    // Event.fire is a Prototype.js method not available in jsdom
+    global.Event = global.Event || {};
+    if (!global.Event.fire) global.Event.fire = () => {};
+  });
+
+  test('clica no botão de notificação quando presente na primeira página', async () => {
+    let clicked = false;
+    document.body.innerHTML = `
+      <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
+        <tbody>
+          <tr><td>
+            <a href="#" title="Enviar Notificação" id="notif-btn">
+              <img src="/common/images/ico_notificar.png">
+            </a>
+          </td></tr>
+        </tbody>
+      </table>`;
+    document.getElementById('notif-btn').addEventListener('click', () => { clicked = true; });
+    const result = await actionSubmeterNotificacao(document, waitImmediate);
+    expect(result).toEqual({ ok: true });
+    expect(clicked).toBe(true);
+  });
+
+  test('pagina com fastforward e clica no botão na segunda página', async () => {
+    let ffClicked = false;
+    let notifClicked = false;
+
+    document.body.innerHTML = `
+      <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
+        <tbody id="tbody-principal">
+          <tr><td>Sem notificação</td></tr>
+        </tbody>
+        <tfoot>
+          <td class=" rich-datascr-button" id="ff-btn">»</td>
+        </tfoot>
+      </table>`;
+
+    document.getElementById('ff-btn').setAttribute(
+      'onclick',
+      "Event.fire(this, 'rich:datascroller:onscroll', {'page': 'fastforward'});"
+    );
+
+    const ffBtn = document.getElementById('ff-btn');
+    ffBtn.addEventListener('click', () => {
+      ffClicked = true;
+      document.getElementById('tbody-principal').innerHTML = `
+        <tr><td>
+          <a href="#" title="Enviar Notificação" id="notif-btn">
+            <img src="/common/images/ico_notificar.png">
+          </a>
+        </td></tr>`;
+      document.getElementById('notif-btn').addEventListener('click', () => { notifClicked = true; });
+    });
+
+    const result = await actionSubmeterNotificacao(document, waitImmediate);
+    expect(result).toEqual({ ok: true });
+    expect(ffClicked).toBe(true);
+    expect(notifClicked).toBe(true);
+  });
+
+  test('retorna erro quando fastforward ausente e botão não encontrado', async () => {
+    document.body.innerHTML = `
+      <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
+        <tbody>
+          <tr><td>Sem nada</td></tr>
+        </tbody>
+      </table>`;
+    const result = await actionSubmeterNotificacao(document, waitImmediate);
+    expect(result).toEqual({ ok: false, error: 'Botão de notificação não encontrado' });
+  });
+
+  test('retorna erro após percorrer maxPages sem encontrar botão', async () => {
+    document.body.innerHTML = `
+      <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
+        <tbody><tr><td>Sem notificação</td></tr></tbody>
+        <tfoot>
+          <td class=" rich-datascr-button" id="ff-btn">»</td>
+        </tfoot>
+      </table>`;
+    document.getElementById('ff-btn').setAttribute(
+      'onclick',
+      "Event.fire(this, 'rich:datascroller:onscroll', {'page': 'fastforward'});"
+    );
+    const result = await actionSubmeterNotificacao(document, waitImmediate, 2);
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/percorrer todas as páginas/);
+  });
+});
