@@ -150,6 +150,50 @@
     });
   }
 
+  function findEmendaBtn(doc) {
+    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
+    if (!table) return null;
+    return table.querySelector('a[title="Submeter Emenda"]') ?? null;
+  }
+
+  async function actionSubmeterEmenda() {
+    const MAX_PAGES = 50;
+    const POLL_TIMEOUT = 30000;
+    const POLL_INTERVAL = 300;
+    const INITIAL_DELAY = 500;
+
+    for (let i = 0; i < MAX_PAGES; i++) {
+      const btn = findEmendaBtn(document);
+      if (btn) {
+        btn.click();
+        return { ok: true };
+      }
+      const ffBtn = findFastforwardBtn(document);
+      if (!ffBtn) {
+        return { ok: false, error: 'Botão de submeter emenda não encontrado' };
+      }
+      ffBtn.click();
+
+      const loaded = await new Promise(resolve => {
+        const deadline = Date.now() + POLL_TIMEOUT;
+        setTimeout(function check() {
+          if (findEmendaBtn(document) || findFastforwardBtn(document)) {
+            resolve(true);
+          } else if (Date.now() >= deadline) {
+            resolve(false);
+          } else {
+            setTimeout(check, POLL_INTERVAL);
+          }
+        }, INITIAL_DELAY);
+      });
+
+      if (!loaded) {
+        return { ok: false, error: 'Timeout aguardando carregamento da página' };
+      }
+    }
+    return { ok: false, error: 'Botão de submeter emenda não encontrado após percorrer todas as páginas' };
+  }
+
   async function actionSubmeterNotificacao() {
     const MAX_PAGES = 50;
     const POLL_TIMEOUT = 30000;
@@ -198,6 +242,7 @@
     aumentarQuadro:       actionAumentarQuadro,
     abrirArvore:          actionAbrirArvore,
     submeterNotificacao:  actionSubmeterNotificacao,
+    submeterEmenda:       actionSubmeterEmenda,
   };
 
   applyAttributeConfig(CONFIG_URL, document, 'load').catch(() => {});
