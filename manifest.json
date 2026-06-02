@@ -3,7 +3,7 @@
   "name": "Plataforma Brasil Toolkit",
   "version": "1.0.0",
   "description": "Ferramentas de DOM para a Plataforma Brasil (detalharProjetoAgrupadorApreciacao)",
-  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://plataformabrasil.saude.gov.br/*",
     "https://*.saude.gov.br/*",

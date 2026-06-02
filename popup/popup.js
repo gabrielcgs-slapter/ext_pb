@@ -49,7 +49,7 @@ async function sendAction(tabId, action, payload = {}) {
 
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files: CONTENT_SCRIPTS });
-  } catch (_) {
+  } catch {
     // script já injetado (IIFE guard ativo) — ok continuar
   }
 
@@ -146,32 +146,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function makeProtocolItem(p, i) {
+    const item = document.createElement('div');
+    item.className = 'protocol-item';
+
+    const info = document.createElement('div');
+    info.className = 'protocol-item-info';
+
+    const nome = document.createElement('div');
+    nome.className = 'protocol-nome';
+    nome.title = p.nome;
+    nome.textContent = p.nome;
+
+    const caae = document.createElement('div');
+    caae.className = 'protocol-caae';
+    caae.title = p.caae;
+    caae.textContent = p.caae;
+
+    info.appendChild(nome);
+    info.appendChild(caae);
+
+    const btnExec = document.createElement('button');
+    btnExec.className = 'btn-exec';
+    btnExec.dataset.index = String(i);
+    btnExec.title = 'Buscar e abrir projeto';
+    btnExec.textContent = '▶';
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn-del';
+    btnDel.dataset.index = String(i);
+    btnDel.title = 'Remover';
+    btnDel.textContent = '🗑';
+
+    item.appendChild(info);
+    item.appendChild(btnExec);
+    item.appendChild(btnDel);
+    return item;
+  }
+
   function renderProtocols(list) {
     protocolsList.innerHTML = '';
     if (list.length === 0) {
-      protocolsList.innerHTML = '<div style="color:#999;font-size:11px;padding:4px 0">Nenhum protocolo adicionado.</div>';
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:#999;font-size:11px;padding:4px 0';
+      empty.textContent = 'Nenhum protocolo adicionado.';
+      protocolsList.appendChild(empty);
       return;
     }
     list.forEach((p, i) => {
-      const item = document.createElement('div');
-      item.className = 'protocol-item';
-      item.innerHTML = `
-        <div class="protocol-item-info">
-          <div class="protocol-nome" title="${escapeHtml(p.nome)}">${escapeHtml(p.nome)}</div>
-          <div class="protocol-caae" title="${escapeHtml(p.caae)}">${escapeHtml(p.caae)}</div>
-        </div>
-        <button class="btn-exec" data-index="${i}" title="Buscar e abrir projeto">▶</button>
-        <button class="btn-del" data-index="${i}" title="Remover">🗑</button>
-      `;
-      protocolsList.appendChild(item);
+      protocolsList.appendChild(makeProtocolItem(p, i));
     });
 
     protocolsList.querySelectorAll('.btn-exec').forEach(btn => {
       if (!onPage) { btn.disabled = true; return; }
       btn.addEventListener('click', async () => {
         const idx = Number(btn.dataset.index);
-        const protocols = await loadProtocols();
-        const p = protocols[idx];
+        const p = list[idx];
         if (!p) return;
         btn.disabled = true;
         const response = await sendAction(tab.id, 'buscarProjeto', { caae: p.caae });
@@ -192,10 +222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderProtocols(updated);
       });
     });
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   document.getElementById('btn-open-protocols').addEventListener('click', async () => {
@@ -227,8 +253,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       showFeedback('Preencha Nome e CAAE.', true);
       return;
     }
-    const list = await loadProtocols();
-    const updated = addToList(list, nome, caae);
+    let updated;
+    try {
+      const list = await loadProtocols();
+      updated = addToList(list, nome, caae);
+    } catch (e) {
+      showFeedback(e.message, true);
+      return;
+    }
     await saveProtocols(updated);
     inputNome.value = '';
     inputCaae.value = '';

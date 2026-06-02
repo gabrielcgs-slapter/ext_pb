@@ -5,6 +5,12 @@
   if (window.__pbLoaded) return;
   window.__pbLoaded = true;
 
+  // ── Constantes de polling ──────────────────────────────────────────────
+  const POLL_TIMEOUT  = 30000;
+  const POLL_INTERVAL = 300;
+  const INITIAL_DELAY = 500;
+  const MAX_PAGES     = 50;
+
   // ── Layout ─────────────────────────────────────────────────────────────
 
   function injectLayoutStyles() {
@@ -28,7 +34,7 @@
 
   // ── Ações ──────────────────────────────────────────────────────────────
 
-  function actionCopyData() {
+  async function actionCopyData() {
     const data = extractProjectData(document);
     const text = [
       `CAAE: ${data.caae ?? 'N/A'}`,
@@ -38,14 +44,7 @@
       `Patrocinador Principal: ${data.patrocinador ?? 'N/A'}`,
     ].join('\n');
     try {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+      await navigator.clipboard.writeText(text);
     } catch (e) {
       return { ok: false, error: 'Falha ao copiar: ' + e.message };
     }
@@ -126,6 +125,7 @@
     return doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos\\:j_id286') ?? null;
   }
 
+  // eslint-disable-next-line no-unused-vars -- usada em tests/submeter-notificacao.test.js
   function waitForTableChange(tableEl, timeout = 5000, debounce = 300) {
     return new Promise((resolve, reject) => {
       let debounceTimer;
@@ -151,11 +151,6 @@
   }
 
   async function actionSubmeterEmenda() {
-    const MAX_PAGES = 50;
-    const POLL_TIMEOUT = 30000;
-    const POLL_INTERVAL = 300;
-    const INITIAL_DELAY = 500;
-
     for (let i = 0; i < MAX_PAGES; i++) {
       const btn = findEmendaBtn(document);
       if (btn) {
@@ -169,15 +164,18 @@
       pgBtn.click();
 
       const loaded = await new Promise(resolve => {
-        const deadline = Date.now() + POLL_TIMEOUT;
-        setTimeout(function check() {
-          if (findEmendaBtn(document) || findPaginacaoBtn(document)) {
-            resolve(true);
-          } else if (Date.now() >= deadline) {
-            resolve(false);
-          } else {
-            setTimeout(check, POLL_INTERVAL);
-          }
+        const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
+        let attempts = 0;
+        setTimeout(() => {
+          const timer = setInterval(() => {
+            if (findEmendaBtn(document) || findPaginacaoBtn(document)) {
+              clearInterval(timer);
+              resolve(true);
+            } else if (++attempts >= maxAttempts) {
+              clearInterval(timer);
+              resolve(false);
+            }
+          }, POLL_INTERVAL);
         }, INITIAL_DELAY);
       });
 
@@ -190,18 +188,14 @@
 
   const PB_PENDING_DETALHAR = 'pb_pendingDetalhar';
 
-  async function actionBuscarProjeto(msg) {
-    const POLL_INTERVAL = 300;
-    const POLL_TIMEOUT = 30000;
-    const INITIAL_DELAY = 800;
-
+  async function actionBuscarProjeto({ caae }) {
     const field = document.getElementById('gerirPesquisaForm:nuCAEE');
     if (!field) return { ok: false, error: 'Campo CAAE não encontrado' };
 
     const btn = document.getElementById('gerirPesquisaForm:idBtnBuscarProjPesquisa');
     if (!btn) return { ok: false, error: 'Botão de busca não encontrado' };
 
-    field.value = msg.caae;
+    field.value = caae;
     field.dispatchEvent(new Event('change'));
 
     // Flag set before click — survives full-page navigation (sessionStorage is tab-scoped)
@@ -211,17 +205,22 @@
     // If search triggers full reload, script dies here and flag is picked up on new load.
     // If search is AJAX, polling below finds Detalhar on same page.
     const found = await new Promise(resolve => {
-      const deadline = Date.now() + POLL_TIMEOUT;
-      setTimeout(function check() {
-        const detalhar = document.querySelector('[title="Detalhar"]');
-        if (detalhar) {
-          sessionStorage.removeItem(PB_PENDING_DETALHAR);
-          detalhar.click();
-          return resolve(true);
-        }
-        if (Date.now() >= deadline) return resolve(false);
-        setTimeout(check, POLL_INTERVAL);
-      }, INITIAL_DELAY);
+      const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
+      let attempts = 0;
+      setTimeout(() => {
+        const timer = setInterval(() => {
+          const detalhar = document.querySelector('[title="Detalhar"]');
+          if (detalhar) {
+            clearInterval(timer);
+            sessionStorage.removeItem(PB_PENDING_DETALHAR);
+            detalhar.click();
+            resolve(true);
+          } else if (++attempts >= maxAttempts) {
+            clearInterval(timer);
+            resolve(false);
+          }
+        }, POLL_INTERVAL);
+      }, 800); // initial delay maior para aguardar resposta do servidor
     });
 
     if (!found) {
@@ -232,11 +231,6 @@
   }
 
   async function actionSubmeterNotificacao() {
-    const MAX_PAGES = 50;
-    const POLL_TIMEOUT = 30000;
-    const POLL_INTERVAL = 300;
-    const INITIAL_DELAY = 500;
-
     for (let i = 0; i < MAX_PAGES; i++) {
       const btn = findNotificacaoBtn(document);
       if (btn) {
@@ -250,15 +244,18 @@
       pgBtn.click();
 
       const loaded = await new Promise(resolve => {
-        const deadline = Date.now() + POLL_TIMEOUT;
-        setTimeout(function check() {
-          if (findNotificacaoBtn(document) || findPaginacaoBtn(document)) {
-            resolve(true);
-          } else if (Date.now() >= deadline) {
-            resolve(false);
-          } else {
-            setTimeout(check, POLL_INTERVAL);
-          }
+        const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
+        let attempts = 0;
+        setTimeout(() => {
+          const timer = setInterval(() => {
+            if (findNotificacaoBtn(document) || findPaginacaoBtn(document)) {
+              clearInterval(timer);
+              resolve(true);
+            } else if (++attempts >= maxAttempts) {
+              clearInterval(timer);
+              resolve(false);
+            }
+          }, POLL_INTERVAL);
         }, INITIAL_DELAY);
       });
 
@@ -295,7 +292,8 @@
     }, 500);
   }
 
-  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (sender.id !== chrome.runtime.id) return;
     const fn = ACTIONS[msg.action];
     if (!fn) {
       sendResponse({ ok: false, error: `Ação desconhecida: ${msg.action}` });
