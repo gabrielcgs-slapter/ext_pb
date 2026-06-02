@@ -100,6 +100,7 @@ aumentarQuadro: r => r.ok ? (r.enlarged ? 'Quadro aumentado' : 'Quadro restaurad
   abrirArvore:    r => r.ok ? `${r.count} nós expandidos` : `Erro: ${r.error}`,
   submeterNotificacao: r => r.ok ? 'Notificação submetida!' : `Erro: ${r.error}`,
   submeterEmenda:      r => r.ok ? 'Emenda submetida!' : `Erro: ${r.error}`,
+  imprimir:            r => r.ok ? 'Diálogo de impressão aberto.' : `Erro: ${r.error}`,
 };
 
 // Map of toggle state extractors — add an entry here to make any action toggleable.
@@ -301,4 +302,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     protocolsForm.classList.add('hidden');
     renderProtocols(updated);
   });
+
+  const btnSalvarPdf = document.getElementById('btn-salvar-pdf');
+  if (btnSalvarPdf) {
+    if (!onPage) {
+      btnSalvarPdf.disabled = true;
+    } else {
+      btnSalvarPdf.addEventListener('click', async () => {
+        showFeedback('Gerando PDF…', false);
+        btnSalvarPdf.disabled = true;
+        try {
+          const result = await savePdf(tab.id);
+          showFeedback(result.ok ? 'PDF salvo com sucesso!' : `Erro: ${result.error}`, !result.ok);
+        } catch (e) {
+          showFeedback(`Erro: ${e.message}`, true);
+        } finally {
+          btnSalvarPdf.disabled = false;
+        }
+      });
+    }
+  }
 });

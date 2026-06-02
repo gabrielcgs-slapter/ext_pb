@@ -16,7 +16,7 @@ body {
   justify-content: space-between;
 }
 
-#title-logo { height: 24px; width: auto; display: block; }
+#title-logo { height: 48px; width: auto; display: block; }
 
 .dot {
   width: 10px; height: 10px;
@@ -154,3 +154,8 @@ body.wide { width: 300px; }
   line-height: 1;
 }
 .btn-del:hover { color: #b71c1c; }
+
+.section-divider {
+  border-top: 1px solid #e0e0e0;
+  margin: 8px 0;
+}
