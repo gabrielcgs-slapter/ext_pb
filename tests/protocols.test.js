@@ -1,9 +1,6 @@
 // tests/protocols.test.js
-const STORAGE_KEY = 'pb_protocols';
 
 // Inline das funções (padrão do projeto — não usa import)
-function buildProtocols(list = []) { return list; }
-
 function addToList(list, nome, caae) {
   return [...list, { nome: nome.trim(), caae: caae.trim() }];
 }
