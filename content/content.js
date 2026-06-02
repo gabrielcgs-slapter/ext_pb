@@ -188,6 +188,8 @@
     return { ok: false, error: 'Botão de submeter emenda não encontrado após percorrer todas as páginas' };
   }
 
+  const PB_PENDING_DETALHAR = 'pb_pendingDetalhar';
+
   async function actionBuscarProjeto(msg) {
     const POLL_INTERVAL = 300;
     const POLL_TIMEOUT = 30000;
@@ -196,24 +198,36 @@
     const field = document.getElementById('gerirPesquisaForm:nuCAEE');
     if (!field) return { ok: false, error: 'Campo CAAE não encontrado' };
 
+    const btn = document.getElementById('gerirPesquisaForm:idBtnBuscarProjPesquisa');
+    if (!btn) return { ok: false, error: 'Botão de busca não encontrado' };
+
     field.value = msg.caae;
     field.dispatchEvent(new Event('change'));
 
-    const btn = document.getElementById('gerirPesquisaForm:idBtnBuscarProjPesquisa');
-    if (!btn) return { ok: false, error: 'Botão de busca não encontrado' };
+    // Flag set before click — survives full-page navigation (sessionStorage is tab-scoped)
+    sessionStorage.setItem(PB_PENDING_DETALHAR, '1');
     btn.click();
 
+    // If search triggers full reload, script dies here and flag is picked up on new load.
+    // If search is AJAX, polling below finds Detalhar on same page.
     const found = await new Promise(resolve => {
       const deadline = Date.now() + POLL_TIMEOUT;
       setTimeout(function check() {
         const detalhar = document.querySelector('[title="Detalhar"]');
-        if (detalhar) { detalhar.click(); return resolve(true); }
+        if (detalhar) {
+          sessionStorage.removeItem(PB_PENDING_DETALHAR);
+          detalhar.click();
+          return resolve(true);
+        }
         if (Date.now() >= deadline) return resolve(false);
         setTimeout(check, POLL_INTERVAL);
       }, INITIAL_DELAY);
     });
 
-    if (!found) return { ok: false, error: 'Botão Detalhar não encontrado após busca' };
+    if (!found) {
+      sessionStorage.removeItem(PB_PENDING_DETALHAR);
+      return { ok: false, error: 'Botão Detalhar não encontrado após busca' };
+    }
     return { ok: true };
   }
 
@@ -269,6 +283,17 @@
   };
 
   applyAttributeConfig(CONFIG_URL, document, 'load').catch(() => {});
+
+  // Auto-click Detalhar if a buscarProjeto triggered full-page navigation
+  if (sessionStorage.getItem(PB_PENDING_DETALHAR)) {
+    sessionStorage.removeItem(PB_PENDING_DETALHAR);
+    const _deadline = Date.now() + 15000;
+    setTimeout(function _checkDetalhar() {
+      const detalhar = document.querySelector('[title="Detalhar"]');
+      if (detalhar) { detalhar.click(); return; }
+      if (Date.now() < _deadline) setTimeout(_checkDetalhar, 300);
+    }, 500);
+  }
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const fn = ACTIONS[msg.action];
