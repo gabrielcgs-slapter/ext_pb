@@ -58,3 +58,99 @@ body {
 }
 .feedback-ok  { color: #2e7d32; }
 .feedback-err { color: #c62828; }
+
+/* ── Protocolos ── */
+body.wide { width: 300px; }
+
+#protocols-panel { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+#protocols-panel.hidden { display: none; }
+#actions.hidden { display: none; }
+
+#protocols-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #064060;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+.btn-icon:hover { text-decoration: underline; }
+
+.btn-protocols { border-top: 1px solid #ccc; margin-top: 4px; }
+.btn-add { background: #e8f5e9; border-color: #4caf50; }
+.btn-add:hover { background: #c8e6c9; }
+.btn-cancel { background: #fce4ec; border-color: #e91e63; }
+.btn-cancel:hover { background: #f8bbd0; }
+
+#protocols-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+#protocols-form.hidden { display: none; }
+
+#protocols-form input {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 12px;
+}
+#protocols-form input:focus { border-color: #064060; outline: none; }
+
+#protocols-form-actions { display: flex; gap: 4px; }
+#protocols-form-actions .btn { flex: 1; padding: 5px; font-size: 11px; }
+
+#protocols-list { display: flex; flex-direction: column; gap: 4px; }
+
+.protocol-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 6px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.protocol-item-info { flex: 1; overflow: hidden; }
+.protocol-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.protocol-caae { color: #666; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.btn-exec {
+  background: #e3f2fd;
+  border: 1px solid #064060;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 3px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.btn-exec:hover { background: #bbdefb; }
+.btn-exec:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #c62828;
+  font-size: 13px;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.btn-del:hover { color: #b71c1c; }

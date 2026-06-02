@@ -32,9 +32,36 @@
     <button data-action="submeterEmenda" class="btn">
       📝 Submeter emenda
     </button>
+    <button id="btn-open-protocols" class="btn btn-protocols">
+      📄 Lista de Protocolos
+    </button>
+  </div>
+
+  <!-- Painel de protocolos (oculto por padrão) -->
+  <div id="protocols-panel" class="hidden">
+    <div id="protocols-header">
+      <button id="btn-back" class="btn-icon">← Voltar</button>
+      <span>Protocolos</span>
+    </div>
+
+    <div id="protocols-add-row">
+      <button id="btn-show-add" class="btn btn-add">➕ Adicionar Projeto</button>
+    </div>
+
+    <div id="protocols-form" class="hidden">
+      <input id="input-nome" type="text" placeholder="Nome (ex: TILIA)" maxlength="60" />
+      <input id="input-caae" type="text" placeholder="CAAE (ex: 66068322.1.1001.5262)" maxlength="30" />
+      <div id="protocols-form-actions">
+        <button id="btn-add-confirm" class="btn">Adicionar</button>
+        <button id="btn-add-cancel" class="btn btn-cancel">Cancelar</button>
+      </div>
+    </div>
+
+    <div id="protocols-list"></div>
   </div>
 
   <div id="feedback"></div>
+  <script src="protocols.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
