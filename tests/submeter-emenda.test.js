@@ -3,7 +3,7 @@
 function findEmendaBtn(doc) {
   const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
   if (!table) return null;
-  return table.querySelector('a[title="Submeter Emenda"]') ?? null;
+  return table.querySelector('a img[src*="ico_notificar.png"]')?.closest('a') ?? null;
 }
 
 function findFastforwardBtn(doc) {
@@ -19,15 +19,15 @@ describe('findEmendaBtn(doc)', () => {
     document.body.innerHTML = `
       <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
         <tr><td>
-          <a href="#" title="Submeter Emenda">
-            <img src="/common/images/ico_adicionar.png" alt="Submeter Emenda">
+          <a href="#" title="Enviar Notificação">
+            <img src="/common/images/ico_notificar.png" alt="Enviar Notificação">
           </a>
         </td></tr>
       </table>`;
     const btn = findEmendaBtn(document);
     expect(btn).not.toBeNull();
     expect(btn.tagName).toBe('A');
-    expect(btn.title).toBe('Submeter Emenda');
+    expect(btn.querySelector('img')).not.toBeNull();
   });
 
   test('retorna null quando botão está ausente (tabela existe mas sem link)', () => {
@@ -38,12 +38,12 @@ describe('findEmendaBtn(doc)', () => {
     expect(findEmendaBtn(document)).toBeNull();
   });
 
-  test('não confunde com outros links da tabela (title diferente)', () => {
+  test('retorna null quando img usa ícone diferente (não ico_notificar)', () => {
     document.body.innerHTML = `
       <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
         <tr><td>
-          <a href="#" title="Enviar Notificação">
-            <img src="/common/images/ico_notificar.png">
+          <a href="#" title="Outro Botão">
+            <img src="/common/images/ico_adicionar.png">
           </a>
         </td></tr>
       </table>`;
@@ -92,8 +92,8 @@ describe('actionSubmeterEmenda', () => {
       <table id="formDetalharProjeto:tabelaApreciacoesProjetos">
         <tbody>
           <tr><td>
-            <a href="#" title="Submeter Emenda" id="emenda-btn">
-              <img src="/common/images/ico_adicionar.png">
+            <a href="#" title="Enviar Notificação" id="emenda-btn">
+              <img src="/common/images/ico_notificar.png">
             </a>
           </td></tr>
         </tbody>
@@ -128,8 +128,8 @@ describe('actionSubmeterEmenda', () => {
       ffClicked = true;
       document.getElementById('tbody-principal').innerHTML = `
         <tr><td>
-          <a href="#" title="Submeter Emenda" id="emenda-btn">
-            <img src="/common/images/ico_adicionar.png">
+          <a href="#" title="Enviar Notificação" id="emenda-btn">
+            <img src="/common/images/ico_notificar.png">
           </a>
         </td></tr>`;
       document.getElementById('emenda-btn').addEventListener('click', () => { emendaClicked = true; });

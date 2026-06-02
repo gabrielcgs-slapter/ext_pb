@@ -16,7 +16,7 @@ body {
   justify-content: space-between;
 }
 
-#title { font-weight: 600; font-size: 14px; }
+#title-logo { height: 24px; width: auto; display: block; }
 
 .dot {
   width: 10px; height: 10px;

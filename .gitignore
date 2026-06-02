@@ -4,3 +4,9 @@ package-lock.json
 .DS_Store
 dist/
 build/
+
+# Configuração local do Claude
+.claude/
+
+# Exemplos de HTML na raiz
+*.html
