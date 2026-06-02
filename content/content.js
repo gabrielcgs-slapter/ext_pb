@@ -266,6 +266,11 @@
     return { ok: false, error: 'Botão de notificação não encontrado após percorrer todas as páginas' };
   }
 
+  function actionImprimir() {
+    window.print();
+    return { ok: true };
+  }
+
   // ── Listener ──────────────────────────────────────────────────────────
 
   const ACTIONS = {
@@ -277,6 +282,7 @@
     submeterNotificacao:  actionSubmeterNotificacao,
     submeterEmenda:       actionSubmeterEmenda,
     buscarProjeto:        actionBuscarProjeto,
+    imprimir:             actionImprimir,
   };
 
   applyAttributeConfig(CONFIG_URL, document, 'load').catch(() => {});
