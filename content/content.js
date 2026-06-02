@@ -119,15 +119,11 @@
   }
 
   function findNotificacaoBtn(doc) {
-    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
-    if (!table) return null;
-    return table.querySelector('a img[src*="ico_notificar.png"]')?.closest('a') ?? null;
+    return doc.querySelector('a[title="Enviar Notificação"]') ?? null;
   }
 
-  function findFastforwardBtn(doc) {
-    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
-    if (!table) return null;
-    return table.querySelector('td.rich-datascr-button[onclick*="fastforward"]') ?? null;
+  function findPaginacaoBtn(doc) {
+    return doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos\\:j_id286') ?? null;
   }
 
   function waitForTableChange(tableEl, timeout = 5000, debounce = 300) {
@@ -151,9 +147,7 @@
   }
 
   function findEmendaBtn(doc) {
-    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
-    if (!table) return null;
-    return table.querySelector('a[title="Submeter Emenda"]') ?? null;
+    return doc.querySelector('a[title="Submeter Emenda"]') ?? null;
   }
 
   async function actionSubmeterEmenda() {
@@ -168,16 +162,16 @@
         btn.click();
         return { ok: true };
       }
-      const ffBtn = findFastforwardBtn(document);
-      if (!ffBtn) {
+      const pgBtn = findPaginacaoBtn(document);
+      if (!pgBtn) {
         return { ok: false, error: 'Botão de submeter emenda não encontrado' };
       }
-      ffBtn.click();
+      pgBtn.click();
 
       const loaded = await new Promise(resolve => {
         const deadline = Date.now() + POLL_TIMEOUT;
         setTimeout(function check() {
-          if (findEmendaBtn(document) || findFastforwardBtn(document)) {
+          if (findEmendaBtn(document) || findPaginacaoBtn(document)) {
             resolve(true);
           } else if (Date.now() >= deadline) {
             resolve(false);
@@ -194,6 +188,35 @@
     return { ok: false, error: 'Botão de submeter emenda não encontrado após percorrer todas as páginas' };
   }
 
+  async function actionBuscarProjeto(msg) {
+    const POLL_INTERVAL = 300;
+    const POLL_TIMEOUT = 30000;
+    const INITIAL_DELAY = 800;
+
+    const field = document.getElementById('gerirPesquisaForm:nuCAEE');
+    if (!field) return { ok: false, error: 'Campo CAAE não encontrado' };
+
+    field.value = msg.caae;
+    field.dispatchEvent(new Event('change'));
+
+    const btn = document.getElementById('gerirPesquisaForm:idBtnBuscarProjPesquisa');
+    if (!btn) return { ok: false, error: 'Botão de busca não encontrado' };
+    btn.click();
+
+    const found = await new Promise(resolve => {
+      const deadline = Date.now() + POLL_TIMEOUT;
+      setTimeout(function check() {
+        const detalhar = document.querySelector('[title="Detalhar"]');
+        if (detalhar) { detalhar.click(); return resolve(true); }
+        if (Date.now() >= deadline) return resolve(false);
+        setTimeout(check, POLL_INTERVAL);
+      }, INITIAL_DELAY);
+    });
+
+    if (!found) return { ok: false, error: 'Botão Detalhar não encontrado após busca' };
+    return { ok: true };
+  }
+
   async function actionSubmeterNotificacao() {
     const MAX_PAGES = 50;
     const POLL_TIMEOUT = 30000;
@@ -206,17 +229,16 @@
         btn.click();
         return { ok: true };
       }
-      const ffBtn = findFastforwardBtn(document);
-      if (!ffBtn) {
+      const pgBtn = findPaginacaoBtn(document);
+      if (!pgBtn) {
         return { ok: false, error: 'Botão de notificação não encontrado' };
       }
-      ffBtn.click();
+      pgBtn.click();
 
-      // aguarda próxima página carregar via polling
       const loaded = await new Promise(resolve => {
         const deadline = Date.now() + POLL_TIMEOUT;
         setTimeout(function check() {
-          if (findNotificacaoBtn(document) || findFastforwardBtn(document)) {
+          if (findNotificacaoBtn(document) || findPaginacaoBtn(document)) {
             resolve(true);
           } else if (Date.now() >= deadline) {
             resolve(false);
@@ -243,6 +265,7 @@
     abrirArvore:          actionAbrirArvore,
     submeterNotificacao:  actionSubmeterNotificacao,
     submeterEmenda:       actionSubmeterEmenda,
+    buscarProjeto:        actionBuscarProjeto,
   };
 
   applyAttributeConfig(CONFIG_URL, document, 'load').catch(() => {});
@@ -254,7 +277,7 @@
       return;
     }
     Promise.resolve()
-      .then(() => fn())
+      .then(() => fn(msg))
       .then(r => sendResponse(r))
       .catch(e => sendResponse({ ok: false, error: e.message }));
     return true; // mantém canal aberto para resposta async
