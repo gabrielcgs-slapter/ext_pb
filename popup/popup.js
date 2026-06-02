@@ -58,6 +58,40 @@ async function sendAction(tabId, action, payload = {}) {
   return second;
 }
 
+async function savePdf(tabId) {
+  try {
+    await chrome.debugger.attach({ tabId }, '1.3');
+  } catch (e) {
+    if (e.message?.includes('Another debugger is already attached')) {
+      throw new Error('Feche o DevTools antes de salvar o PDF.');
+    }
+    throw e;
+  }
+  try {
+    await chrome.debugger.sendCommand({ tabId }, 'Page.enable', {});
+    const result = await chrome.debugger.sendCommand({ tabId }, 'Page.printToPDF', {
+      landscape: false,
+      printBackground: true,
+      scale: 1,
+      paperWidth: 8.27,
+      paperHeight: 11.69,
+      marginTop: 0.4,
+      marginBottom: 0.4,
+      marginLeft: 0.4,
+      marginRight: 0.4,
+    });
+    const bytes = Uint8Array.from(atob(result.data), c => c.charCodeAt(0));
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    await chrome.downloads.download({ url, filename: `plataforma_pb_${date}.pdf` });
+    URL.revokeObjectURL(url);
+    return { ok: true };
+  } finally {
+    await chrome.debugger.detach({ tabId });
+  }
+}
+
 const FEEDBACK_MESSAGES = {
   copyData:       r => r.ok ? 'Dados copiados!' : `Erro: ${r.error}`,
   togglePanels:   r => r.ok ? `${r.count} seções alternadas` : `Erro: ${r.error}`,
