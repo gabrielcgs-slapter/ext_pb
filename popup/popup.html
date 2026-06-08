@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
   <div id="header">
@@ -12,48 +16,48 @@
 
   <div id="actions">
     <button data-action="copyData" class="btn">
-      📋 Copiar dados do projeto
+      <i class="fa-regular fa-clipboard"></i> Copiar dados do projeto
     </button>
     <button data-action="togglePanels" class="btn">
-      🔽 Expandir / Colapsar seções
+      <i class="fa-solid fa-chevron-down"></i> Expandir / Colapsar seções
     </button>
-    <button data-action="toggleReadMode" class="btn">
-      👓 Modo leitura (ocultar nav)
-    </button>
+    <!--#<button data-action="toggleReadMode" class="btn">
+    #  <i class="fa-solid fa-glasses"></i> Modo leitura (ocultar nav)
+    </button> -->
     <button data-action="aumentarQuadro" data-toggle="true" class="btn">
-      🔲 Aumentar quadro
+      <i class="fa-regular fa-square"></i> Aumentar quadro
     </button>
     <button data-action="abrirArvore" class="btn">
-      🌳 Abrir árvore de documentos
+      <i class="fa-solid fa-sitemap"></i> Abrir árvore de documentos
+    </button>
+    <button id="btn-open-protocols" class="btn btn-protocols">
+      <i class="fa-solid fa-magnifying-glass"></i> Lista de protocolos
     </button>
     <button data-action="submeterNotificacao" class="btn">
-      🔔 Submeter notificação
+      <i class="fa-regular fa-share-from-square"></i> Submeter notificação
     </button>
     <button data-action="submeterEmenda" class="btn">
-      📝 Submeter emenda
+      <i class="fa-solid fa-plus"></i> Enviar emenda
     </button>
     <div class="section-divider"></div>
-    <button id="btn-salvar-pdf" class="btn">📄 Salvar PDF</button>
-    <button data-action="imprimir" class="btn">🖨️ Imprimir</button>
-    <button id="btn-open-protocols" class="btn btn-protocols">
-      📄 Lista de Protocolos
-    </button>
+    <button id="btn-salvar-e-imprimir" class="btn"><i class="fa-regular fa-file-pdf"></i> Salvar PDF e imprimir</button>
+
   </div>
 
   <!-- Painel de protocolos (oculto por padrão) -->
   <div id="protocols-panel" class="hidden">
     <div id="protocols-header">
-      <button id="btn-back" class="btn-icon">← Voltar</button>
+      <button id="btn-back" class="btn-icon"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
       <span>Protocolos</span>
     </div>
 
     <div id="protocols-add-row">
-      <button id="btn-show-add" class="btn btn-add">➕ Adicionar Projeto</button>
+      <button id="btn-show-add" class="btn btn-add"><i class="fa-solid fa-plus"></i> Adicionar Protocolo</button>
     </div>
 
     <div id="protocols-form" class="hidden">
-      <input id="input-nome" type="text" placeholder="Nome (ex: TILIA)" maxlength="60" />
-      <input id="input-caae" type="text" placeholder="CAAE (ex: 66068322.1.1001.5262)" maxlength="30" />
+      <input id="input-nome" type="text" placeholder="Nome (ex: Estudo)" maxlength="20" />
+      <input id="input-caae" type="text" placeholder="CAAE (ex: 12345678.1.1234.1234)" maxlength="20" />
       <div id="protocols-form-actions">
         <button id="btn-add-confirm" class="btn">Adicionar</button>
         <button id="btn-add-cancel" class="btn btn-cancel">Cancelar</button>

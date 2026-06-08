@@ -34,7 +34,7 @@
 
   // ── Ações ──────────────────────────────────────────────────────────────
 
-  async function actionCopyData() {
+  function actionCopyData() {
     const data = extractProjectData(document);
     const text = [
       `CAAE: ${data.caae ?? 'N/A'}`,
@@ -43,11 +43,6 @@
       `Área Temática: ${data.areaTematica ?? 'N/A'}`,
       `Patrocinador Principal: ${data.patrocinador ?? 'N/A'}`,
     ].join('\n');
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (e) {
-      return { ok: false, error: 'Falha ao copiar: ' + e.message };
-    }
     return { ok: true, text };
   }
 

@@ -144,6 +144,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
       const response = await sendAction(tab.id, action);
+
+      if (action === 'copyData' && response.ok) {
+        try {
+          await navigator.clipboard.writeText(response.text);
+        } catch (e) {
+          showFeedback(`Erro ao copiar: ${e.message}`, true);
+          btn.disabled = false;
+          return;
+        }
+      }
+
       const msg = FEEDBACK_MESSAGES[action]?.(response) ?? (response.ok ? 'OK' : response.error);
       showFeedback(msg, !response.ok);
 
@@ -184,6 +195,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   function makeProtocolItem(p, i) {
     const item = document.createElement('div');
     item.className = 'protocol-item';
+    item.dataset.index = String(i);
+    item.title = 'Clique para buscar e abrir projeto';
 
     const info = document.createElement('div');
     info.className = 'protocol-item-info';
@@ -201,20 +214,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     info.appendChild(nome);
     info.appendChild(caae);
 
-    const btnExec = document.createElement('button');
-    btnExec.className = 'btn-exec';
-    btnExec.dataset.index = String(i);
-    btnExec.title = 'Buscar e abrir projeto';
-    btnExec.textContent = '▶';
-
     const btnDel = document.createElement('button');
     btnDel.className = 'btn-del';
     btnDel.dataset.index = String(i);
     btnDel.title = 'Remover';
-    btnDel.textContent = '🗑';
+    btnDel.innerHTML = '<i class="fa-solid fa-trash"></i>';
 
     item.appendChild(info);
-    item.appendChild(btnExec);
     item.appendChild(btnDel);
     return item;
   }
@@ -232,24 +238,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       protocolsList.appendChild(makeProtocolItem(p, i));
     });
 
-    protocolsList.querySelectorAll('.btn-exec').forEach(btn => {
-      if (!onPage) { btn.disabled = true; return; }
-      btn.addEventListener('click', async () => {
-        const idx = Number(btn.dataset.index);
+    protocolsList.querySelectorAll('.protocol-item').forEach(item => {
+      if (!onPage) {
+        item.classList.add('disabled');
+        return;
+      }
+      item.addEventListener('click', async () => {
+        const idx = Number(item.dataset.index);
         const p = list[idx];
         if (!p) return;
-        btn.disabled = true;
+        item.classList.add('disabled');
         const response = await sendAction(tab.id, 'buscarProjeto', { caae: p.caae });
         showFeedback(
           response.ok ? `Abrindo ${p.nome}...` : `Erro: ${response.error}`,
           !response.ok
         );
-        btn.disabled = false;
+        item.classList.remove('disabled');
       });
     });
 
     protocolsList.querySelectorAll('.btn-del').forEach(btn => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', async event => {
+        event.stopPropagation();
         const idx = Number(btn.dataset.index);
         const list = await loadProtocols();
         const updated = removeFromList(list, idx);
@@ -303,21 +313,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderProtocols(updated);
   });
 
-  const btnSalvarPdf = document.getElementById('btn-salvar-pdf');
-  if (btnSalvarPdf) {
+  const btnSalvarEImprimir = document.getElementById('btn-salvar-e-imprimir');
+  if (btnSalvarEImprimir) {
     if (!onPage) {
-      btnSalvarPdf.disabled = true;
+      btnSalvarEImprimir.disabled = true;
     } else {
-      btnSalvarPdf.addEventListener('click', async () => {
-        showFeedback('Gerando PDF…', false);
-        btnSalvarPdf.disabled = true;
+      btnSalvarEImprimir.addEventListener('click', async () => {
+        btnSalvarEImprimir.disabled = true;
         try {
+          showFeedback('Gerando PDF…', false);
           const result = await savePdf(tab.id);
-          showFeedback(result.ok ? 'PDF salvo com sucesso!' : `Erro: ${result.error}`, !result.ok);
+          if (!result.ok) {
+            showFeedback(`Erro ao salvar PDF: ${result.error}`, true);
+            return;
+          }
+          showFeedback('PDF salvo. Abrindo impressão…', false);
+          const printResult = await sendAction(tab.id, 'imprimir');
+          showFeedback(
+            printResult.ok ? 'PDF salvo e diálogo de impressão aberto.' : `Erro ao imprimir: ${printResult.error}`,
+            !printResult.ok
+          );
         } catch (e) {
           showFeedback(`Erro: ${e.message}`, true);
         } finally {
-          btnSalvarPdf.disabled = false;
+          btnSalvarEImprimir.disabled = false;
         }
       });
     }
