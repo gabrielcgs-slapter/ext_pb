@@ -83,3 +83,21 @@ describe('emendaAtual', () => {
   });
 });
 
+describe('tipoCentro', () => {
+  test.each([
+    ['CARIMBO_COORDENADOR.png',    'Coordenador'],
+    ['CARIMBO_PARTICIPANTE.png',   'Participante'],
+    ['CARIMBO_COPARTICIPANTE.png', 'Coparticipante'],
+  ])('identifica tipo "%s" → "%s"', (filename, expected) => {
+    document.body.innerHTML = `<img src="/common/images/carimbos/${filename}" />`;
+    const data = extractProjectData(document);
+    expect(data.tipoCentro).toBe(expected);
+  });
+
+  test('retorna null quando imagem CARIMBO ausente', () => {
+    document.body.innerHTML = '<p>Sem carimbo</p>';
+    const data = extractProjectData(document);
+    expect(data.tipoCentro).toBeNull();
+  });
+});
+
