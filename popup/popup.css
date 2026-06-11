@@ -7,7 +7,7 @@
   --primary-100:  #064060;
   --accent:       #c67000;
   --text:         #1a1a1b;
-  --text-muted:   #333333;
+  --text-muted:   #58585a;
   --success:      #14532d;
   --error:        #991b1b;
   --radius:       6px;
@@ -204,6 +204,18 @@ body.wide { width: 300px; }
   border-radius: var(--radius);
 }
 #protocols-form.hidden { display: none; }
+
+#protocols-caae-auto {
+  padding: 6px 9px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: #14532d;
+  font-variant-numeric: tabular-nums;
+}
+#protocols-caae-auto.hidden { display: none; }
+#protocols-form input.hidden { display: none; }
 
 #protocols-form input {
   width: 100%;

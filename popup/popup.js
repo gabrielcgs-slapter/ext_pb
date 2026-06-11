@@ -14,6 +14,10 @@ function isPlataformaBrasil(url) {
   return url && PB_PATTERNS.some(p => url.includes(p));
 }
 
+function isDetalharPage(url) {
+  return url?.includes('detalharProjetoAgrupadorApreciacao');
+}
+
 function showFeedback(msg, isError = false) {
   const el = document.getElementById('feedback');
   el.textContent = msg;
@@ -121,6 +125,42 @@ function applyToggleClass(btn, active) {
   btn.classList.toggle('btn-active', active);
 }
 
+function _navigateToProjectInMainWorld(projectId) {
+  const id = String(projectId ?? '');
+  if (!/^\d+$/.test(id)) return { ok: false, error: 'ID de projeto inválido' };
+  if (!document.getElementById('gerirPesquisaForm')) return { ok: false, error: 'Formulário gerirPesquisaForm não encontrado. Certifique-se de estar na página de Gerir Pesquisa.' };
+
+  Richfaces.showModalPanel('ajaxStatusMP', { showModal: true });
+  if (typeof jsfcljs === 'function') {
+    jsfcljs(
+      document.getElementById('gerirPesquisaForm'),
+      {
+        [`gerirPesquisaForm:dataTableProjetos:${id}:j_id243`]: `gerirPesquisaForm:dataTableProjetos:${id}:j_id243`,
+        'coProjeto': id,
+        'primeiraTela4x4': 'S',
+        'siglaParam': 'P',
+        'consultaCepOrConep': 'false',
+      },
+      ''
+    );
+  }
+  return { ok: true };
+}
+
+async function navigateToProject(tabId, projectId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func: _navigateToProjectInMainWorld,
+      args: [projectId],
+    });
+    return results?.[0]?.result ?? { ok: false, error: 'Sem resultado da execução' };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const tab = await getActiveTab();
   const onPage = isPlataformaBrasil(tab?.url ?? '');
@@ -178,7 +218,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const protocolsList   = document.getElementById('protocols-list');
   const protocolsForm   = document.getElementById('protocols-form');
   const inputNome       = document.getElementById('input-nome');
-  const inputCaae       = document.getElementById('input-caae');
+  const caaeAutoEl      = document.getElementById('protocols-caae-auto');
+  const caaeValueEl     = document.getElementById('protocols-caae-value');
+
+  let _autoProtocolData = null; // { caae, projectId } quando extraído da página
 
   function showView(view) {
     if (view === 'protocols') {
@@ -248,7 +291,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const p = list[idx];
         if (!p) return;
         item.classList.add('disabled');
-        const response = await sendAction(tab.id, 'buscarProjeto', { caae: p.caae });
+        const response = p.projectId
+          ? await navigateToProject(tab.id, p.projectId)
+          : await sendAction(tab.id, 'buscarProjeto', { caae: p.caae });
         showFeedback(
           response.ok ? `Abrindo ${p.nome}...` : `Erro: ${response.error}`,
           !response.ok
@@ -280,20 +325,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     showView('actions');
   });
 
-  document.getElementById('btn-show-add').addEventListener('click', () => {
-    protocolsForm.classList.toggle('hidden');
+  function resetProtocolForm() {
+    _autoProtocolData = null;
+    caaeAutoEl.classList.add('hidden');
+    caaeValueEl.textContent = '';
+    inputNome.value = '';
+  }
+
+  document.getElementById('btn-show-add').addEventListener('click', async () => {
+    caaeAutoEl.classList.add('hidden');
+    protocolsForm.classList.remove('hidden');
     inputNome.focus();
+
+    const res = await sendAction(tab.id, 'extractProtocolData');
+    if (res.ok) {
+      _autoProtocolData = { caae: res.caae, projectId: res.projectId };
+      caaeValueEl.textContent = res.caae;
+      caaeAutoEl.classList.remove('hidden');
+    } else {
+      _autoProtocolData = null;
+      showFeedback(`Erro ao extrair dados: ${res.error}`, true);
+    }
   });
 
   document.getElementById('btn-add-cancel').addEventListener('click', () => {
     protocolsForm.classList.add('hidden');
-    inputNome.value = '';
-    inputCaae.value = '';
+    resetProtocolForm();
   });
 
   document.getElementById('btn-add-confirm').addEventListener('click', async () => {
     const nome = inputNome.value.trim();
-    const caae = inputCaae.value.trim();
+    const caae = _autoProtocolData?.caae ?? '';
+    const projectId = _autoProtocolData?.projectId ?? null;
     if (!nome || !caae) {
       showFeedback('Preencha Nome e CAAE.', true);
       return;
@@ -301,15 +364,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     let updated;
     try {
       const list = await loadProtocols();
-      updated = addToList(list, nome, caae);
+      updated = addToList(list, nome, caae, projectId);
     } catch (e) {
       showFeedback(e.message, true);
       return;
     }
     await saveProtocols(updated);
-    inputNome.value = '';
-    inputCaae.value = '';
     protocolsForm.classList.add('hidden');
+    resetProtocolForm();
     renderProtocols(updated);
   });
 

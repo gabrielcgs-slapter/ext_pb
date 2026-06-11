@@ -8,12 +8,14 @@ function isValidCAAE(caae) {
   return CAAE_REGEX.test(caae);
 }
 
-function addToList(list, nome, caae) {
+function addToList(list, nome, caae, projectId = null) {
   const trimmedCAAE = caae.trim();
   if (!isValidCAAE(trimmedCAAE)) {
     throw new Error(`CAAE inválido: "${trimmedCAAE}". Formato esperado: 00000000.0.0000.0000`);
   }
-  return [...list, { nome: nome.trim(), caae: trimmedCAAE }];
+  const entry = { nome: nome.trim(), caae: trimmedCAAE };
+  if (projectId) entry.projectId = String(projectId);
+  return [...list, entry];
 }
 
 function removeFromList(list, index) {

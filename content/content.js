@@ -314,6 +314,13 @@
     return { ok: false, error: 'Botão de notificação não encontrado após percorrer todas as páginas' };
   }
 
+  function actionExtractProtocolData() {
+    const data = extractProjectData(document);
+    if (!data.caae) return { ok: false, error: 'CAAE não encontrado nesta página' };
+    return { ok: true, caae: data.caae, projectId: data.projectId ?? null };
+  }
+
+
   function actionImprimir() {
     window.print();
     return { ok: true };
@@ -330,6 +337,7 @@
     submeterNotificacao:  actionSubmeterNotificacao,
     submeterEmenda:       actionSubmeterEmenda,
     buscarProjeto:        actionBuscarProjeto,
+    extractProtocolData:  actionExtractProtocolData,
     imprimir:             actionImprimir,
   };
 
