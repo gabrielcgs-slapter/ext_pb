@@ -42,6 +42,8 @@
       `Pesquisador Responsável: ${data.pesquisador ?? 'N/A'}`,
       `Área Temática: ${data.areaTematica ?? 'N/A'}`,
       `Patrocinador Principal: ${data.patrocinador ?? 'N/A'}`,
+      `Emenda Atual: ${data.emendaAtual ?? 'N/A'}`,
+      `Tipo de Centro: ${data.tipoCentro ?? 'N/A'}`,
     ].join('\n');
     return { ok: true, text };
   }

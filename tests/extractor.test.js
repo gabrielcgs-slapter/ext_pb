@@ -52,6 +52,8 @@ describe('extractProjectData', () => {
     expect(data.patrocinador).toBe(
       'Division of AIDS US National Institute of Allergy and Infectious Diseases'
     );
+    expect(data.emendaAtual).toBe('E3');
+    expect(data.tipoCentro).toBe('Coordenador');
   });
 });
 
