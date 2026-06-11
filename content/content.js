@@ -195,27 +195,78 @@
 
     // Flag set before click — survives full-page navigation (sessionStorage is tab-scoped)
     sessionStorage.setItem(PB_PENDING_DETALHAR, '1');
-    btn.click();
 
     // If search triggers full reload, script dies here and flag is picked up on new load.
-    // If search is AJAX, polling below finds Detalhar on same page.
+    // If search is AJAX, observer/polling below finds Detalhar on same page.
+    const statusStop  = document.getElementById('_viewRoot:status.stop');
+    const statusStart = document.getElementById('_viewRoot:status.start');
+
     const found = await new Promise(resolve => {
-      const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
-      let attempts = 0;
-      setTimeout(() => {
-        const timer = setInterval(() => {
+      let done = false;
+      let observer = null;
+      let timeoutHandle;
+
+      function tryClickDetalhar() {
+        if (done) return;
+        done = true;
+        if (observer) observer.disconnect();
+        clearTimeout(timeoutHandle);
+        // Extra delay to ensure DOM is fully rendered after AJAX completes
+        setTimeout(() => {
           const detalhar = document.querySelector('[title="Detalhar"]');
           if (detalhar) {
-            clearInterval(timer);
             sessionStorage.removeItem(PB_PENDING_DETALHAR);
             detalhar.click();
             resolve(true);
-          } else if (++attempts >= maxAttempts) {
-            clearInterval(timer);
+          } else {
             resolve(false);
           }
-        }, POLL_INTERVAL);
-      }, 800); // initial delay maior para aguardar resposta do servidor
+        }, 300);
+      }
+
+      if (statusStop && statusStart) {
+        // Primary: watch RichFaces AJAX status indicators
+        // During AJAX: status.start visible, status.stop hidden (display:none)
+        // After AJAX:  status.stop visible again, status.start hidden
+        observer = new MutationObserver(mutations => {
+          for (const mutation of mutations) {
+            if (mutation.attributeName !== 'style') continue;
+            const stopStyle  = statusStop.getAttribute('style')  || '';
+            const startStyle = statusStart.getAttribute('style') || '';
+            const ajaxDone   = !stopStyle.includes('display: none') &&
+                               !stopStyle.includes('display:none')  &&
+                               startStyle.includes('display: none');
+            if (ajaxDone) tryClickDetalhar();
+          }
+        });
+        // Observer must be set up BEFORE btn.click() to avoid race condition
+        observer.observe(statusStop,  { attributes: true, attributeFilter: ['style'] });
+        observer.observe(statusStart, { attributes: true, attributeFilter: ['style'] });
+
+        timeoutHandle = setTimeout(() => {
+          if (!done) tryClickDetalhar();
+        }, POLL_TIMEOUT);
+      } else {
+        // Fallback: polling (status elements not found — different page structure)
+        const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
+        let attempts = 0;
+        timeoutHandle = setTimeout(() => {
+          const timer = setInterval(() => {
+            const detalhar = document.querySelector('[title="Detalhar"]');
+            if (detalhar) {
+              clearInterval(timer);
+              sessionStorage.removeItem(PB_PENDING_DETALHAR);
+              detalhar.click();
+              resolve(true);
+            } else if (++attempts >= maxAttempts) {
+              clearInterval(timer);
+              resolve(false);
+            }
+          }, POLL_INTERVAL);
+        }, 800);
+      }
+
+      btn.click();
     });
 
     if (!found) {

@@ -318,13 +318,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!onPage) {
       btnSalvarEImprimir.disabled = true;
     } else {
+      const originalHTML = btnSalvarEImprimir.innerHTML;
+      let awaitingConfirm = false;
+
+      function resetBtn() {
+        awaitingConfirm = false;
+        btnSalvarEImprimir.innerHTML = originalHTML;
+        btnSalvarEImprimir.classList.remove('btn-confirm-pending');
+        btnSalvarEImprimir.disabled = false;
+      }
+
       btnSalvarEImprimir.addEventListener('click', async () => {
+        if (!awaitingConfirm) {
+          awaitingConfirm = true;
+          btnSalvarEImprimir.innerHTML = '<i class="fa-regular fa-file-pdf"></i> Confirmar';
+          btnSalvarEImprimir.classList.add('btn-confirm-pending');
+          return;
+        }
+
         btnSalvarEImprimir.disabled = true;
         try {
           showFeedback('Gerando PDF…', false);
           const result = await savePdf(tab.id);
           if (!result.ok) {
             showFeedback(`Erro ao salvar PDF: ${result.error}`, true);
+            resetBtn();
             return;
           }
           showFeedback('PDF salvo. Abrindo impressão…', false);
@@ -336,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
           showFeedback(`Erro: ${e.message}`, true);
         } finally {
-          btnSalvarEImprimir.disabled = false;
+          resetBtn();
         }
       });
     }

@@ -1,13 +1,13 @@
 :root {
-  --bg:           #f0f4f7;
-  --surface:      #ffffff;
-  --border:       #ccd8e4;
-  --primary:      #064060;
+  --bg:           #064060;
+  --surface:      #e9e9e9;
+  --border:       #000000;
+  --primary:      #006837;
   --primary-50:   #e8f2f9;
-  --primary-100:  #bdd5e9;
+  --primary-100:  #064060;
   --accent:       #c67000;
-  --text:         #1a2e3e;
-  --text-muted:   #6b8299;
+  --text:         #1a1a1b;
+  --text-muted:   #333333;
   --success:      #14532d;
   --error:        #991b1b;
   --radius:       6px;
@@ -35,7 +35,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#title-logo { height: 44px; width: auto; display: block; }
+#title-logo { height: 60px; width: auto; display: block; }
 
 .dot {
   width: 9px;
@@ -112,15 +112,15 @@ body {
 
 /* ── Protocols button ────────────────────────── */
 .btn-protocols {
-  background: #fff8f0;
-  border-color: #f5d9a8;
+  background: var(--primary-50);
+  border-color: var(--primary);
   color: var(--accent);
   margin-top: 2px;
 }
 .btn-protocols i { color: var(--accent); }
 .btn-protocols:hover {
-  background: #fdefd4;
-  border-color: var(--accent);
+  background: var(--primary-50);
+  border-color: var(--primary-100);
 }
 .btn-protocols:hover i { color: var(--accent); }
 
@@ -130,10 +130,10 @@ body {
   padding: 4px 12px 6px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: #b0c8dc;
 }
-.feedback-ok  { color: var(--success); }
-.feedback-err { color: var(--error); }
+.feedback-ok  { color: #4ade80; }
+.feedback-err { color: #fca5a5; }
 
 /* ── Protocols panel ─────────────────────────── */
 body.wide { width: 300px; }
@@ -150,12 +150,12 @@ body.wide { width: 300px; }
   border-bottom: 1px solid var(--border);
   font-weight: 600;
   font-size: 13px;
-  color: var(--text);
+  color: #e9e9e9;
 }
 
 .btn-icon {
-  background: none;
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   cursor: pointer;
   color: var(--primary);
   font-family: inherit;
@@ -168,9 +168,13 @@ body.wide { width: 300px; }
   gap: 5px;
   transition: background 0.12s;
 }
-.btn-icon:hover { background: var(--primary-50); }
+.btn-icon:hover { 
+  background: var(--primary-50); 
+}
 
-#protocols-add-row { padding-bottom: 2px; }
+#protocols-add-row { 
+  padding-bottom: 2px; 
+}
 
 .btn-add {
   background: #f0fdf4;
@@ -278,3 +282,16 @@ body.wide { width: 300px; }
   transition: color 0.12s, background 0.12s;
 }
 .btn-del:hover { color: var(--error); background: #fee2e2; }
+
+/* ── Confirm-pending state ───────────────────── */
+.btn-confirm-pending {
+  background: #fffbeb;
+  border-color: #fbbf24;
+  color: #92400e;
+}
+.btn-confirm-pending i { color: #d97706; }
+.btn-confirm-pending:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+.btn-confirm-pending:hover i { color: #b45309; }

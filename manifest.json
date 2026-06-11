@@ -5,10 +5,8 @@
   "description": "Ferramentas de DOM para a Plataforma Brasil (detalharProjetoAgrupadorApreciacao)",
   "permissions": ["activeTab", "scripting", "storage", "debugger", "downloads"],
   "host_permissions": [
-    "https://plataformabrasil.saude.gov.br/*",
-    "https://*.saude.gov.br/*",
-    "http://localhost/*"
-  ],
+    "https://plataformabrasil.saude.gov.br/*"
+    ],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -26,8 +24,7 @@
     {
       "matches": [
         "https://plataformabrasil.saude.gov.br/*detalharProjetoAgrupadorApreciacao*",
-        "https://plataformabrasil.saude.gov.br/*gerirPesquisaAgrupador*",
-        "http://localhost/*"
+        "https://plataformabrasil.saude.gov.br/*gerirPesquisaAgrupador*"
       ],
       "js": ["lib/extractor.js", "content/attribute-config.js", "content/content.js"],
       "run_at": "document_idle"
@@ -40,8 +37,7 @@
     {
       "resources": ["config/attributes.json"],
       "matches": [
-        "https://plataformabrasil.saude.gov.br/*",
-        "http://localhost/*"
+        "https://plataformabrasil.saude.gov.br/*"
       ]
     }
   ]
