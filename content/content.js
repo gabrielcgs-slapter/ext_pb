@@ -28,6 +28,9 @@
     document.getElementById('pb-toolkit-layout')?.remove();
   }
 
+  const _ENLARGED_CSS = 'width: 90vw; max-width: 100vw; margin: 0; padding: 0; position: relative; left: 55%; right: 50%; margin-left: -50vw; margin-right: -50vw;';
+  const _ENLARGED_SEL = '#formDetalharProjeto';
+
   // ── Atributos via config ────────────────────────────────────────────────
 
   const CONFIG_URL = chrome.runtime.getURL('config/attributes.json');
@@ -77,29 +80,20 @@
   }
 
   async function actionAumentarQuadro() {
-    const res = await fetch(CONFIG_URL);
-    const rules = await res.json();
-    const rules_aq = rules.filter(r => r.trigger === 'aumentarQuadro');
-
-    rules_aq.forEach(({ selector, attributes }) => {
-      document.querySelectorAll(selector).forEach(el => {
-        if (el.dataset.pbEnlarged === 'true') {
-          Object.keys(attributes).forEach(attr => el.removeAttribute(attr));
-          delete el.dataset.pbEnlarged;
-        } else {
-          Object.entries(attributes).forEach(([attr, val]) => el.setAttribute(attr, val));
-          el.dataset.pbEnlarged = 'true';
-        }
-      });
-    });
-
-    const enlarged = rules_aq.some(({ selector }) =>
-      [...document.querySelectorAll(selector)].some(el => el.dataset.pbEnlarged === 'true')
-    );
-
-    if (enlarged) injectLayoutStyles(); else removeLayoutStyles();
-
-    return { ok: true, enlarged };
+    const el = document.querySelector(_ENLARGED_SEL);
+    if (!el) return { ok: false, error: 'Formulário não encontrado' };
+    const enlarged = el.dataset.pbEnlarged === 'true';
+    if (enlarged) {
+      el.removeAttribute('style');
+      delete el.dataset.pbEnlarged;
+      removeLayoutStyles();
+      return { ok: true, enlarged: false };
+    } else {
+      el.setAttribute('style', _ENLARGED_CSS);
+      el.dataset.pbEnlarged = 'true';
+      injectLayoutStyles();
+      return { ok: true, enlarged: true };
+    }
   }
 
   function actionAbrirArvore() {
@@ -119,7 +113,9 @@
   }
 
   function findPaginacaoBtn(doc) {
-    return doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos\\:j_id286') ?? null;
+    const table = doc.querySelector('#formDetalharProjeto\\:tabelaApreciacoesProjetos');
+    if (!table) return null;
+    return table.querySelector('td.rich-datascr-button[onclick*="fastforward"]') ?? null;
   }
 
   // eslint-disable-next-line no-unused-vars -- usada em tests/submeter-notificacao.test.js
@@ -147,40 +143,33 @@
     return doc.querySelector('a[title="Submeter Emenda"]') ?? null;
   }
 
-  async function actionSubmeterEmenda() {
+  async function paginateUntilFound(findFn, notFoundMsg) {
     for (let i = 0; i < MAX_PAGES; i++) {
-      const btn = findEmendaBtn(document);
-      if (btn) {
-        btn.click();
-        return { ok: true };
-      }
+      const btn = findFn(document);
+      if (btn) { btn.click(); return { ok: true }; }
       const pgBtn = findPaginacaoBtn(document);
-      if (!pgBtn) {
-        return { ok: false, error: 'Botão de submeter emenda não encontrado' };
-      }
+      if (!pgBtn) return { ok: false, error: notFoundMsg };
       pgBtn.click();
-
       const loaded = await new Promise(resolve => {
         const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
         let attempts = 0;
         setTimeout(() => {
           const timer = setInterval(() => {
-            if (findEmendaBtn(document) || findPaginacaoBtn(document)) {
-              clearInterval(timer);
-              resolve(true);
+            if (findFn(document) || findPaginacaoBtn(document)) {
+              clearInterval(timer); resolve(true);
             } else if (++attempts >= maxAttempts) {
-              clearInterval(timer);
-              resolve(false);
+              clearInterval(timer); resolve(false);
             }
           }, POLL_INTERVAL);
         }, INITIAL_DELAY);
       });
-
-      if (!loaded) {
-        return { ok: false, error: 'Timeout aguardando carregamento da página' };
-      }
+      if (!loaded) return { ok: false, error: 'Timeout aguardando carregamento da página' };
     }
-    return { ok: false, error: 'Botão de submeter emenda não encontrado após percorrer todas as páginas' };
+    return { ok: false, error: `${notFoundMsg} após percorrer todas as páginas` };
+  }
+
+  async function actionSubmeterEmenda() {
+    return paginateUntilFound(findEmendaBtn, 'Botão de submeter emenda não encontrado');
   }
 
   const PB_PENDING_DETALHAR = 'pb_pendingDetalhar';
@@ -279,39 +268,7 @@
   }
 
   async function actionSubmeterNotificacao() {
-    for (let i = 0; i < MAX_PAGES; i++) {
-      const btn = findNotificacaoBtn(document);
-      if (btn) {
-        btn.click();
-        return { ok: true };
-      }
-      const pgBtn = findPaginacaoBtn(document);
-      if (!pgBtn) {
-        return { ok: false, error: 'Botão de notificação não encontrado' };
-      }
-      pgBtn.click();
-
-      const loaded = await new Promise(resolve => {
-        const maxAttempts = Math.ceil(POLL_TIMEOUT / POLL_INTERVAL);
-        let attempts = 0;
-        setTimeout(() => {
-          const timer = setInterval(() => {
-            if (findNotificacaoBtn(document) || findPaginacaoBtn(document)) {
-              clearInterval(timer);
-              resolve(true);
-            } else if (++attempts >= maxAttempts) {
-              clearInterval(timer);
-              resolve(false);
-            }
-          }, POLL_INTERVAL);
-        }, INITIAL_DELAY);
-      });
-
-      if (!loaded) {
-        return { ok: false, error: 'Timeout aguardando carregamento da página' };
-      }
-    }
-    return { ok: false, error: 'Botão de notificação não encontrado após percorrer todas as páginas' };
+    return paginateUntilFound(findNotificacaoBtn, 'Botão de notificação não encontrado');
   }
 
   function actionExtractProtocolData() {

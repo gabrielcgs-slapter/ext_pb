@@ -68,27 +68,6 @@ describe('applyAttributeConfig — trigger=load', () => {
   });
 });
 
-describe('applyAttributeConfig — trigger=aumentarQuadro', () => {
-  test('adiciona style em #formDetalharProjeto', async () => {
-    mockFetch(RULES);
-    const doc = makeDoc(`<form id="formDetalharProjeto"></form>`);
-    await applyAttributeConfig('mock://url', doc, 'aumentarQuadro');
-    const style = doc.getElementById('formDetalharProjeto').getAttribute('style');
-    expect(style).toContain('90vw');
-    expect(style).toContain('-50vw');
-  });
-
-  test('NÃO aplica regras de trigger=load', async () => {
-    mockFetch(RULES);
-    const doc = makeDoc(`
-      <form id="formDetalharProjeto"></form>
-      <div class="rich-stglpanel-header"></div>
-    `);
-    await applyAttributeConfig('mock://url', doc, 'aumentarQuadro');
-    expect(doc.querySelector('.rich-stglpanel-header').getAttribute('data-pb-panel')).toBeNull();
-  });
-});
-
 describe('applyAttributeConfig — sem trigger', () => {
   test('aplica todas as regras sem filtro', async () => {
     mockFetch(RULES);
@@ -97,7 +76,6 @@ describe('applyAttributeConfig — sem trigger', () => {
       <div class="rich-stglpanel-header"></div>
     `);
     await applyAttributeConfig('mock://url', doc);
-    expect(doc.getElementById('formDetalharProjeto').getAttribute('style')).toContain('90vw');
     expect(doc.querySelector('.rich-stglpanel-header').getAttribute('data-pb-panel')).toBe('true');
   });
 });
