@@ -10,6 +10,9 @@ const PB_PATTERNS = [
   'gerirPesquisaAgrupador.jsf',
 ];
 
+// JSF auto-generates this button ID; update here if navigation breaks after a platform upgrade
+const JSF_NAVIGATE_BUTTON_ID = 'j_id243';
+
 function isPlataformaBrasil(url) {
   return url && PB_PATTERNS.some(p => url.includes(p));
 }
@@ -96,12 +99,14 @@ function _navigateToProjectInMainWorld(projectId) {
   if (!/^\d+$/.test(id)) return { ok: false, error: 'ID de projeto inválido' };
   if (!document.getElementById('gerirPesquisaForm')) return { ok: false, error: 'Formulário gerirPesquisaForm não encontrado. Certifique-se de estar na página de Gerir Pesquisa.' };
 
-  Richfaces.showModalPanel('ajaxStatusMP', { showModal: true });
+  if (typeof Richfaces !== 'undefined') {
+    Richfaces.showModalPanel('ajaxStatusMP', { showModal: true });
+  }
   if (typeof jsfcljs === 'function') {
     jsfcljs(
       document.getElementById('gerirPesquisaForm'),
       {
-        [`gerirPesquisaForm:dataTableProjetos:${id}:j_id243`]: `gerirPesquisaForm:dataTableProjetos:${id}:j_id243`,
+        [`gerirPesquisaForm:dataTableProjetos:${id}:${JSF_NAVIGATE_BUTTON_ID}`]: `gerirPesquisaForm:dataTableProjetos:${id}:${JSF_NAVIGATE_BUTTON_ID}`,
         'coProjeto': id,
         'primeiraTela4x4': 'S',
         'siglaParam': 'P',
@@ -227,7 +232,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnDel.className = 'btn-del';
     btnDel.dataset.index = String(i);
     btnDel.title = 'Remover';
-    btnDel.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    const trashIcon = document.createElement('i');
+    trashIcon.className = 'fa-solid fa-trash';
+    btnDel.appendChild(trashIcon);
 
     item.appendChild(info);
     item.appendChild(btnDel);

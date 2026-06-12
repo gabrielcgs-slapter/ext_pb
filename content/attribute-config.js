@@ -1,7 +1,13 @@
 // content/attribute-config.js
 async function applyAttributeConfig(rulesUrl, doc, trigger) {
-  const res = await fetch(rulesUrl);
-  const rules = await res.json();
+  let rules;
+  try {
+    const res = await fetch(rulesUrl);
+    rules = await res.json();
+  } catch (e) {
+    console.warn('[pb-toolkit] attributes.json:', e.message);
+    return;
+  }
   const target = doc ?? document;
   const filtered = trigger ? rules.filter(r => r.trigger === trigger) : rules;
   filtered.forEach(({ selector, attributes }) => {
