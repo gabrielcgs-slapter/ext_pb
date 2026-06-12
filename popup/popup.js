@@ -106,12 +106,14 @@ function _navigateToProjectInMainWorld(projectId, buttonId) {
   // setTimeout defers navigation so this return value reaches the popup before page context is torn down.
   // buttonId must be passed as an arg — closures are not preserved by chrome.scripting.executeScript.
   setTimeout(() => {
+    const form = document.getElementById('gerirPesquisaForm');
+    if (!form) return;
     if (typeof Richfaces !== 'undefined') {
       Richfaces.showModalPanel('ajaxStatusMP', { showModal: true });
     }
     if (typeof jsfcljs === 'function') {
       jsfcljs(
-        document.getElementById('gerirPesquisaForm'),
+        form,
         {
           [`gerirPesquisaForm:dataTableProjetos:${id}:${buttonId}`]: `gerirPesquisaForm:dataTableProjetos:${id}:${buttonId}`,
           'coProjeto': id,
