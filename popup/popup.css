@@ -18,7 +18,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
   font-size: 13px;
   width: 240px;
   background: var(--bg);

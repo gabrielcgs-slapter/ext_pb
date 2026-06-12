@@ -62,39 +62,6 @@ async function sendAction(tabId, action, payload = {}) {
   return second;
 }
 
-async function savePdf(tabId) {
-  try {
-    await chrome.debugger.attach({ tabId }, '1.3');
-  } catch (e) {
-    if (e.message?.includes('Another debugger is already attached')) {
-      throw new Error('Feche o DevTools antes de salvar o PDF.');
-    }
-    throw e;
-  }
-  try {
-    await chrome.debugger.sendCommand({ tabId }, 'Page.enable', {});
-    const result = await chrome.debugger.sendCommand({ tabId }, 'Page.printToPDF', {
-      landscape: false,
-      printBackground: true,
-      scale: 1,
-      paperWidth: 8.27,
-      paperHeight: 11.69,
-      marginTop: 0.4,
-      marginBottom: 0.4,
-      marginLeft: 0.4,
-      marginRight: 0.4,
-    });
-    const bytes = Uint8Array.from(atob(result.data), c => c.charCodeAt(0));
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    await chrome.downloads.download({ url, filename: `plataforma_pb_${date}.pdf` });
-    URL.revokeObjectURL(url);
-    return { ok: true };
-  } finally {
-    await chrome.debugger.detach({ tabId });
-  }
-}
 
 const FEEDBACK_MESSAGES = {
   copyData:       r => r.ok ? 'Dados copiados!' : `Erro: ${r.error}`,
@@ -104,7 +71,6 @@ aumentarQuadro: r => r.ok ? (r.enlarged ? 'Quadro aumentado' : 'Quadro restaurad
   abrirArvore:    r => r.ok ? `${r.count} nós expandidos` : `Erro: ${r.error}`,
   submeterNotificacao: r => r.ok ? 'Notificação submetida!' : `Erro: ${r.error}`,
   submeterEmenda:      r => r.ok ? 'Emenda submetida!' : `Erro: ${r.error}`,
-  imprimir:            r => r.ok ? 'Diálogo de impressão aberto.' : `Erro: ${r.error}`,
 };
 
 // Map of toggle state extractors — add an entry here to make any action toggleable.
@@ -380,44 +346,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!onPage) {
       btnSalvarEImprimir.disabled = true;
     } else {
-      const originalHTML = btnSalvarEImprimir.innerHTML;
-      let awaitingConfirm = false;
-
-      function resetBtn() {
-        awaitingConfirm = false;
-        btnSalvarEImprimir.innerHTML = originalHTML;
-        btnSalvarEImprimir.classList.remove('btn-confirm-pending');
-        btnSalvarEImprimir.disabled = false;
-      }
-
       btnSalvarEImprimir.addEventListener('click', async () => {
-        if (!awaitingConfirm) {
-          awaitingConfirm = true;
-          btnSalvarEImprimir.innerHTML = '<i class="fa-regular fa-file-pdf"></i> Confirmar';
-          btnSalvarEImprimir.classList.add('btn-confirm-pending');
-          return;
-        }
-
         btnSalvarEImprimir.disabled = true;
-        try {
-          showFeedback('Gerando PDF…', false);
-          const result = await savePdf(tab.id);
-          if (!result.ok) {
-            showFeedback(`Erro ao salvar PDF: ${result.error}`, true);
-            resetBtn();
-            return;
-          }
-          showFeedback('PDF salvo. Abrindo impressão…', false);
-          const printResult = await sendAction(tab.id, 'imprimir');
-          showFeedback(
-            printResult.ok ? 'PDF salvo e diálogo de impressão aberto.' : `Erro ao imprimir: ${printResult.error}`,
-            !printResult.ok
-          );
-        } catch (e) {
-          showFeedback(`Erro: ${e.message}`, true);
-        } finally {
-          resetBtn();
-        }
+        const result = await sendAction(tab.id, 'imprimir');
+        showFeedback(
+          result.ok ? 'Diálogo de impressão aberto.' : `Erro: ${result.error}`,
+          !result.ok
+        );
+        btnSalvarEImprimir.disabled = false;
       });
     }
   }

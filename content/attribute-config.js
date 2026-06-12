@@ -6,7 +6,10 @@ async function applyAttributeConfig(rulesUrl, doc, trigger) {
   const filtered = trigger ? rules.filter(r => r.trigger === trigger) : rules;
   filtered.forEach(({ selector, attributes }) => {
     target.querySelectorAll(selector).forEach(el => {
-      Object.entries(attributes).forEach(([attr, val]) => el.setAttribute(attr, val));
+      Object.entries(attributes).forEach(([attr, val]) => {
+        if (/^on/i.test(attr) || attr.toLowerCase() === 'style') return;
+        el.setAttribute(attr, val);
+      });
     });
   });
 }
