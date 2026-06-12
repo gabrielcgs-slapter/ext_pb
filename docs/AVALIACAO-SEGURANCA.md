@@ -40,13 +40,13 @@ A extensão é tecnicamente bem-construída, com escopo restrito, testes automat
 
 ## Melhorias Recomendadas (priorizadas por impacto)
 
-- [ ] **1. Remover ou justificar `debugger`** — maior bloqueador de publicação e maior privilégio. Avaliar `window.print()` puro.
-- [ ] **2. Internalizar Font Awesome e a fonte** — elimina vazamento de privacidade e dependência de rede.
-- [ ] **3. Allowlist de atributos** em `attribute-config.js` / `attributes.json` — barra `style`/`on*` arbitrários.
-- [ ] **4. Tornar seletores resilientes** — trocar IDs `j_id*` hardcoded por seletores semânticos (`[title=...]`, sufixos estáveis) com fallback. Hoje qualquer atualização da plataforma quebra `buscarProjeto`/paginação.
-- [ ] **5. Extrair duplicação** — `submeterEmenda` e `submeterNotificacao` são quase idênticos; fatorar o loop de paginação/polling.
-- [ ] **6. Adicionar CSP explícita** no manifest para o popup (`content_security_policy`), restringindo `style-src`/`font-src` após internalizar assets.
-- [ ] **7. Service worker vazio** (`service_worker.js`) só loga — confirmar se é necessário; manter mínimo está ok.
+- [x] **1. Remover ou justificar `debugger`** — substituído por `window.print()`. Permissões `debugger` e `downloads` removidas do manifest.
+- [x] **2. Internalizar Font Awesome e a fonte** — FA 6.7.2 em `popup/fa/` (CSS + woff2); Google Fonts removido; `font-family` usa `system-ui`.
+- [x] **3. Allowlist de atributos** em `attribute-config.js` — bloqueia `on*` e `style`. Entrada `style` removida de `attributes.json`; estilo de `aumentarQuadro` hardcoded em JS.
+- [x] **4. Tornar seletores resilientes** — `findPaginacaoBtn` usa `td.rich-datascr-button[onclick*="fastforward"]` em vez de `j_id286`.
+- [x] **5. Extrair duplicação** — `paginateUntilFound(findFn, msg)` helper extraído; `actionSubmeterEmenda` e `actionSubmeterNotificacao` são 1-liners.
+- [x] **6. Adicionar CSP explícita** — `content_security_policy.extension_pages` adicionado ao manifest; `script/style/font-src` restritos a `'self'`.
+- [ ] **7. Service worker vazio** (`service_worker.js`) só loga — confirmado mínimo, sem mudança necessária.
 
 ---
 
