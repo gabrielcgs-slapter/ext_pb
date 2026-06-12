@@ -21,6 +21,10 @@ function isDetalharPage(url) {
   return url?.includes('detalharProjetoAgrupadorApreciacao');
 }
 
+function isGerirPesquisaPage(url) {
+  return url?.includes('gerirPesquisaAgrupador.jsf');
+}
+
 function showFeedback(msg, isError = false) {
   const el = document.getElementById('feedback');
   el.textContent = msg;
@@ -94,27 +98,32 @@ function applyToggleClass(btn, active) {
   btn.classList.toggle('btn-active', active);
 }
 
-function _navigateToProjectInMainWorld(projectId) {
+function _navigateToProjectInMainWorld(projectId, buttonId) {
   const id = String(projectId ?? '');
   if (!/^\d+$/.test(id)) return { ok: false, error: 'ID de projeto inválido' };
   if (!document.getElementById('gerirPesquisaForm')) return { ok: false, error: 'Formulário gerirPesquisaForm não encontrado. Certifique-se de estar na página de Gerir Pesquisa.' };
 
-  if (typeof Richfaces !== 'undefined') {
-    Richfaces.showModalPanel('ajaxStatusMP', { showModal: true });
-  }
-  if (typeof jsfcljs === 'function') {
-    jsfcljs(
-      document.getElementById('gerirPesquisaForm'),
-      {
-        [`gerirPesquisaForm:dataTableProjetos:${id}:${JSF_NAVIGATE_BUTTON_ID}`]: `gerirPesquisaForm:dataTableProjetos:${id}:${JSF_NAVIGATE_BUTTON_ID}`,
-        'coProjeto': id,
-        'primeiraTela4x4': 'S',
-        'siglaParam': 'P',
-        'consultaCepOrConep': 'false',
-      },
-      ''
-    );
-  }
+  // setTimeout defers navigation so this return value reaches the popup before page context is torn down.
+  // buttonId must be passed as an arg — closures are not preserved by chrome.scripting.executeScript.
+  setTimeout(() => {
+    if (typeof Richfaces !== 'undefined') {
+      Richfaces.showModalPanel('ajaxStatusMP', { showModal: true });
+    }
+    if (typeof jsfcljs === 'function') {
+      jsfcljs(
+        document.getElementById('gerirPesquisaForm'),
+        {
+          [`gerirPesquisaForm:dataTableProjetos:${id}:${buttonId}`]: `gerirPesquisaForm:dataTableProjetos:${id}:${buttonId}`,
+          'coProjeto': id,
+          'primeiraTela4x4': 'S',
+          'siglaParam': 'P',
+          'consultaCepOrConep': 'false',
+        },
+        ''
+      );
+    }
+  }, 0);
+
   return { ok: true };
 }
 
@@ -124,7 +133,7 @@ async function navigateToProject(tabId, projectId) {
       target: { tabId },
       world: 'MAIN',
       func: _navigateToProjectInMainWorld,
-      args: [projectId],
+      args: [projectId, JSF_NAVIGATE_BUTTON_ID],
     });
     return results?.[0]?.result ?? { ok: false, error: 'Sem resultado da execução' };
   } catch (e) {
@@ -135,6 +144,7 @@ async function navigateToProject(tabId, projectId) {
 document.addEventListener('DOMContentLoaded', async () => {
   const tab = await getActiveTab();
   const onPage = isPlataformaBrasil(tab?.url ?? '');
+  const onGerirPage = isGerirPesquisaPage(tab?.url ?? '');
 
   document.getElementById('status-dot').className = `dot ${onPage ? 'dot-on' : 'dot-off'}`;
   document.getElementById('status-dot').title = onPage
@@ -142,6 +152,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     : 'Página não é Plataforma Brasil';
 
   const savedStates = await loadToggleStates();
+
+  if (!onPage) document.getElementById('btn-open-protocols').disabled = true;
 
   document.querySelectorAll('.btn[data-action]').forEach(btn => {
     if (!onPage) { btn.disabled = true; return; }
@@ -181,6 +193,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.disabled = false;
     });
   });
+
+  if (!onGerirPage) {
+    document.getElementById('btn-show-add').disabled = true;
+  }
 
   // ── Painel de Protocolos ────────────────────────────────────────────────
 
@@ -324,6 +340,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-add-cancel').addEventListener('click', () => {
     protocolsForm.classList.add('hidden');
     resetProtocolForm();
+  });
+
+  inputNome.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-add-confirm').click();
   });
 
   document.getElementById('btn-add-confirm').addEventListener('click', async () => {
