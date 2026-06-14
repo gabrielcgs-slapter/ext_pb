@@ -1,0 +1,383 @@
+/* ── Design tokens ───────────────────────────────────────────── */
+:root {
+  /* raw palette */
+  --teal-900:  #064060;
+  --teal-50:   #e8f2f9;
+  --teal-100:  #c7dff0;
+  --green-800: #14532d;
+  --green-700: #006837;
+  --green-50:  #f0fdf4;
+  --green-100: #dcfce7;
+  --green-400: #4ade80;
+  --amber-600: #c67000;
+  --amber-400: #fbbf24;
+  --amber-50:  #fffbeb;
+  --amber-100: #fef3c7;
+  --red-800:   #991b1b;
+  --red-50:    #fff5f5;
+  --red-100:   #fee2e2;
+
+  /* semantic tokens */
+  --bg:           var(--teal-900);
+  --surface:      #f0f4f8;
+  --border:       rgba(0, 0, 0, 0.18);
+  --text:         #1a1a1b;
+  --text-muted:   #58585a;
+  --text-on-dark: #e9e9e9;
+  --primary:      var(--green-700);
+  --accent:       var(--amber-600);
+  --hover-bg:     var(--teal-50);
+  --hover-border: var(--teal-900);
+  --error:        var(--red-800);
+
+  /* geometry */
+  --popup-width:  240px;
+  --popup-wide:   300px;
+  --radius:       6px;
+  --radius-sm:    4px;
+
+  /* elevation */
+  --shadow:    0 1px 2px rgba(6, 64, 96, 0.08);
+  --shadow-md: 0 2px 6px rgba(6, 64, 96, 0.12);
+}
+
+/* ── Reset ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Visibility utility ──────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── Base ────────────────────────────────────────────────────── */
+body {
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  width: var(--popup-width);
+  background: var(--bg);
+  color: var(--text);
+}
+body.wide { width: var(--popup-wide); }
+
+/* ── Header ──────────────────────────────────────────────────── */
+#header {
+  background: var(--primary);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#title-logo { height: 60px; width: auto; display: block; }
+
+/* ── Status dot ──────────────────────────────────────────────── */
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.dot-on {
+  background: var(--green-400);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.22);
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+.dot-off { background: rgba(255, 255, 255, 0.28); }
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.22); }
+  50%       { box-shadow: 0 0 0 5px rgba(74, 222, 128, 0.08); }
+}
+
+/* ── Actions list ────────────────────────────────────────────── */
+#actions {
+  padding: 10px 10px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Button base ─────────────────────────────────────────────── */
+.btn {
+  width: 100%;
+  padding: 8px 11px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow);
+  transition: background 0.13s, border-color 0.13s, box-shadow 0.13s, transform 0.1s;
+}
+
+.btn i {
+  width: 14px;
+  text-align: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 0.13s;
+}
+
+.btn:hover {
+  background: var(--hover-bg);
+  border-color: var(--hover-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.btn:hover i { color: var(--primary); }
+
+.btn:active { transform: translateY(0); box-shadow: var(--shadow); }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow);
+}
+
+/* toggle / active state */
+.btn-active {
+  background: var(--green-50);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+.btn-active i { color: var(--primary); }
+.btn-active:hover {
+  background: var(--green-100);
+  border-color: var(--primary);
+}
+.btn-active:hover i { color: var(--green-800); }
+
+/* ── Section divider ─────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 0 2px;
+}
+
+/* ── Protocols trigger button ────────────────────────────────── */
+.btn-protocols {
+  background: var(--green-50);
+  border-color: var(--primary);
+  color: var(--green-800);
+}
+.btn-protocols i { color: var(--primary); }
+.btn-protocols:hover {
+  background: var(--green-100);
+  border-color: var(--primary);
+}
+.btn-protocols:hover i { color: var(--green-800); }
+
+/* ── Feedback bar ────────────────────────────────────────────── */
+#feedback {
+  min-height: 26px;
+  padding: 4px 12px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #b0c8dc;
+  transition: opacity 0.2s;
+}
+.feedback-ok  { color: var(--green-400); }
+.feedback-err { color: #fca5a5; }
+
+/* ── Protocols panel ─────────────────────────────────────────── */
+#protocols-panel {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#protocols-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-on-dark);
+}
+
+.btn-icon {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 7px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn-icon:hover {
+  background: var(--hover-bg);
+  border-color: var(--hover-border);
+}
+
+#protocols-add-row { padding-bottom: 2px; }
+
+.btn-add {
+  background: var(--green-50);
+  border-color: #86efac;
+  color: var(--green-800);
+}
+.btn-add i { color: #16a34a; }
+.btn-add:hover {
+  background: var(--green-100);
+  border-color: var(--green-400);
+}
+.btn-add:hover i { color: var(--green-800); }
+
+.btn-cancel {
+  background: var(--red-50);
+  border-color: #fca5a5;
+  color: var(--error);
+}
+.btn-cancel i { color: #ef4444; }
+.btn-cancel:hover {
+  background: var(--red-100);
+  border-color: #f87171;
+}
+.btn-cancel:hover i { color: var(--error); }
+
+/* ── Add-protocol form ───────────────────────────────────────── */
+#protocols-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+}
+
+#protocols-form input {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+#protocols-form input::placeholder { color: var(--text-muted); }
+#protocols-form input:focus {
+  border-color: var(--hover-border);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(6, 64, 96, 0.12);
+}
+
+#protocols-caae-auto {
+  padding: 6px 9px;
+  background: var(--green-50);
+  border: 1px solid #86efac;
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: var(--green-800);
+  font-variant-numeric: tabular-nums;
+}
+
+#protocols-form-actions { display: flex; gap: 6px; }
+#protocols-form-actions .btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 11px;
+  justify-content: center;
+}
+
+/* ── Protocol list items ─────────────────────────────────────── */
+#protocols-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.protocol-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background 0.13s, border-color 0.13s, box-shadow 0.13s, transform 0.1s;
+}
+.protocol-item:hover {
+  background: var(--hover-bg);
+  border-color: var(--hover-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.protocol-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.protocol-item-info { flex: 1; min-width: 0; }
+
+.protocol-nome {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.protocol-caae {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.btn-del {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 12px;
+  padding: 4px 5px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  transition: color 0.12s, background 0.12s;
+}
+.btn-del:hover {
+  color: var(--error);
+  background: var(--red-100);
+}
+
+/* ── Confirm-pending state ───────────────────────────────────── */
+.btn-confirm-pending {
+  background: var(--amber-50);
+  border-color: var(--amber-400);
+  color: #92400e;
+}
+.btn-confirm-pending i { color: #d97706; }
+.btn-confirm-pending:hover {
+  background: var(--amber-100);
+  border-color: #f59e0b;
+}
+.btn-confirm-pending:hover i { color: #b45309; }

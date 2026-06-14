@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Plataforma Brasil</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="../popup/fa/all.min.css">
+</head>
+<body>
+  <header id="header">
+    <img id="title-logo" src="../popup/logo_platBR.png" alt="Plataforma Brasil">
+    <span id="status-dot" class="dot dot-off" title="Página não detectada" role="status"></span>
+  </header>
+
+  <main id="actions">
+    <button type="button" data-action="copyData" class="btn">
+      <i class="fa-regular fa-clipboard" aria-hidden="true"></i>
+      Copiar dados do projeto
+    </button>
+    <button type="button" data-action="togglePanels" class="btn">
+      <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+      Expandir / Colapsar seções
+    </button>
+    <button type="button" data-action="aumentarQuadro" data-toggle="true" class="btn">
+      <i class="fa-regular fa-square" aria-hidden="true"></i>
+      Aumentar quadro
+    </button>
+    <button type="button" data-action="abrirArvore" class="btn">
+      <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
+      Abrir árvore de documentos
+    </button>
+
+    <div class="section-divider" role="separator"></div>
+
+    <button type="button" id="btn-open-protocols" class="btn btn-protocols">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      Lista de protocolos
+    </button>
+    <button type="button" data-action="submeterNotificacao" class="btn">
+      <i class="fa-regular fa-share-from-square" aria-hidden="true"></i>
+      Submeter notificação
+    </button>
+    <button type="button" data-action="submeterEmenda" class="btn">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Enviar emenda
+    </button>
+
+    <div class="section-divider" role="separator"></div>
+
+    <button type="button" id="btn-salvar-e-imprimir" class="btn">
+      <i class="fa-regular fa-file-pdf" aria-hidden="true"></i>
+      Imprimir / Salvar PDF
+    </button>
+  </main>
+
+  <!-- Painel de protocolos -->
+  <section id="protocols-panel" class="hidden" aria-label="Lista de protocolos">
+    <div id="protocols-header">
+      <button type="button" id="btn-back" class="btn-icon">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        Voltar
+      </button>
+      <span>Lista de Protocolos</span>
+    </div>
+
+    <div id="protocols-add-row">
+      <button type="button" id="btn-show-add" class="btn btn-add">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Adicionar Protocolo
+      </button>
+    </div>
+
+    <form id="protocols-form" class="hidden" novalidate>
+      <input
+        id="input-nome"
+        type="text"
+        placeholder="Nome (ex: Estudo)"
+        maxlength="25"
+        autocomplete="off"
+      />
+      <div id="protocols-caae-auto" class="hidden" aria-live="polite">
+        <span id="protocols-caae-value"></span>
+      </div>
+      <div id="protocols-form-actions">
+        <button type="button" id="btn-add-confirm" class="btn">Adicionar</button>
+        <button type="button" id="btn-add-cancel" class="btn btn-cancel">Cancelar</button>
+      </div>
+    </form>
+
+    <div id="protocols-list" aria-live="polite"></div>
+  </section>
+
+  <div id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="../popup/protocols.js"></script>
+  <script src="../popup/popup.js"></script>
+</body>
+</html>

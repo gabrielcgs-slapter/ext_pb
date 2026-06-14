@@ -8,5 +8,6 @@ build/
 # Configuração local do Claude
 .claude/
 
-# Exemplos de HTML na raiz
-*.html
+# Exemplos de HTML na raiz (apenas na raiz do repo)
+/*.html
+!popup_v2/*.html
